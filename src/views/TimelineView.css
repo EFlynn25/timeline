@@ -1,0 +1,10 @@
+.timelineView {
+	padding: 0;
+
+	overflow: hidden;
+}
+
+.timelineView>canvas {
+	width: 100%;
+	height: 100%;
+}

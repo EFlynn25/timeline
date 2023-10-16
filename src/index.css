@@ -1,13 +1,56 @@
+@import url("https://fonts.googleapis.com/css?family=Gabarito:400,700");
+@import url("https://fonts.googleapis.com/css?family=Montserrat");
+
+html,
+body,
+#root {
+	width: 100%;
+	height: 100%;
+
+	background-color: hsl(220deg 5% 12%);
+	overflow: hidden;
+}
+
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	margin: 0;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+		'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+		sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+		monospace;
+}
+
+* {
+	margin: 0;
+	color: white;
+}
+
+h1,
+h2,
+h3 {
+	font-family: Gabarito, sans-serif;
+	font-weight: bold;
+}
+
+p,
+input,
+textarea {
+	font-family: Montserrat, Verdana, sans-serif;
+}
+
+input,
+textarea,
+select {
+	padding: 5px;
+
+	color-scheme: dark;
+	background-color: #fff2;
+	border-radius: 5px;
+	border: none;
+	outline: none;
 }
