@@ -43,6 +43,44 @@ header h1 {
 	gap: 10px;
 }
 
+.headerTab {
+	height: 25px;
+	padding: 5px 10px;
+
+	border-radius: 50px;
+	cursor: pointer;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+}
+
+.headerTab>span,
+.headerTab>h1 {
+	font-size: 20px;
+	color: #fff9;
+}
+
+.headerTab:hover>span,
+.headerTab:hover>h1 {
+	color: #fffc;
+}
+
+.headerTab:active>span,
+.headerTab:active>h1 {
+	color: #fff7;
+}
+
+.headerTabSelected {
+	background-color: #fff1;
+}
+
+.headerTabSelected>span,
+.headerTabSelected>h1 {
+	color: white !important;
+}
+
 /* Views */
 
 .view {

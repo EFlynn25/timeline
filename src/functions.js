@@ -23,6 +23,26 @@ export const YEAR = DAY * 365;
 
 /* Date parsing */
 
+export function convertToDate(date, time) {
+	if (time)
+		return new Date(
+			date.slice(6),
+			+date.slice(0, 2) - 1,
+			date.slice(3, 5),
+			+time.slice(0, 2) + (time[8] === "p" ? 12 : 0) - (+time.slice(0, 2) === 12 ? 12 : 0),
+			time.slice(3, 5),
+			time.slice(6, 8)
+		);
+	else return new Date(date.slice(6), +date.slice(0, 2) - 1, date.slice(3, 5));
+}
+export function numericDate(date) {
+	return parseInt(date.slice(6) + date.slice(0, 2) + date.slice(3, 5));
+}
+export function numericTime(time) {
+	return !time
+		? 0
+		: parseInt(time.slice(0, 2) + time.slice(3, 5) + time.slice(6, 8)) + (time[8] === "p" ? 120000 : 0);
+}
 export function parseDate(date) {
 	if (date === "TBD") return date;
 	const dateComponents = date.split("/");
@@ -48,10 +68,34 @@ export function betweenDates(date) {
 		dateMiddle.getFullYear().toString()
 	);
 }
+export function parseRangeDate(date, relative) {
+	return typeof date === "string"
+		? (relative === "~" ? relative : relative ? relative + " " : "") + parseDate(date)
+		: (relative ? relative[0] + " " : "≥ ") +
+				parseDate(date[0]) +
+				" & " +
+				(relative ? relative[1] + " " : "≤ ") +
+				parseDate(date[1]);
+}
+export function parseRangeTitle(date, time, relative) {
+	return typeof date === "string" && !time
+		? (relative === "~" ? relative : relative ? relative + " " : "") + date
+		: typeof date === "string" && typeof time === "string"
+		? (relative === "~" ? relative : relative ? relative + " " : "") + date + " at " + time
+		: (relative ? relative[0] + " " : "≥ ") +
+		  (typeof date === "string" ? date : date[0]) +
+		  (!time ? "" : " at " + (typeof time === "string" ? time : time[0])) +
+		  " & " +
+		  (relative ? relative[1] + " " : "≤ ") +
+		  (typeof date === "string" ? date : date[1]) +
+		  (!time ? "" : " at " + (typeof time === "string" ? time : time[1]));
+}
 
 /* Dataset parsing */
 
 export function parseEventsToMonths(events) {
+	if (!events || Object.keys(events).length === 0) return {};
+
 	let parsedEvents = {};
 	Object.keys(events).forEach((event_id) => {
 		const dateComponents = events[event_id].date.split("/");
@@ -68,12 +112,6 @@ export function parseEventsToMonths(events) {
 			return obj;
 		}, {});
 	Object.keys(parsedEvents).forEach((month) => {
-		const numericDate = (date) => parseInt(date.slice(6) + date.slice(0, 2) + date.slice(3, 5));
-		const numericTime = (time) =>
-			!time
-				? 0
-				: parseInt(time.slice(0, 2) + time.slice(3, 5) + time.slice(6, 8)) + (time[8] === "p" ? 120000 : 0);
-
 		parsedEvents[month] = parsedEvents[month].sort((a, b) =>
 			a.date === b.date ? numericTime(a.time) - numericTime(b.time) : numericDate(a.date) - numericDate(b.date)
 		);
@@ -81,6 +119,8 @@ export function parseEventsToMonths(events) {
 	return parsedEvents;
 }
 export function sortRangesAsIDs(ranges) {
+	if (!ranges) return [];
+
 	const dateInt = (date) => parseInt(date.slice(6) + date.slice(0, 2) + date.slice(3, 5));
 	const sortedRangeIDs = Object.keys(ranges).sort(
 		(a, b) => dateInt(betweenDates(ranges[a].fromDate)) - dateInt(betweenDates(ranges[b].fromDate))

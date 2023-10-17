@@ -13,6 +13,7 @@ import TimelineView from "./views/TimelineView";
 // Sidebar Imports
 import CreateEventSidebar from "./sidebars/CreateEventSidebar";
 import CreateRangeSidebar from "./sidebars/CreateRangeSidebar";
+import { useWindowSize } from "./functions";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyB4gp1SLXhtv8jzzzdUms6FPDRjLMR1FSI",
@@ -31,16 +32,9 @@ export const db = getDatabase();
 function signIn() {
 	signInWithPopup(auth, provider)
 		.then((result) => {
-			// const credential = GoogleAuthProvider.credentialFromResult(result);
-			// const token = credential.accessToken;
-			// const user = result.user;
 			console.log("Signed in!");
 		})
 		.catch((error) => {
-			// const errorCode = error.code;
-			// const errorMessage = error.message;
-			// const email = error.customData.email;
-			// const credential = GoogleAuthProvider.credentialFromError(error);
 			console.log("An error occurred while signing in! :(");
 		});
 }
@@ -49,8 +43,10 @@ function App() {
 	const [signedIn, setSignedIn] = useState(null);
 	const [dataRetrieved, setDataRetrieved] = useState(false);
 	const [currentDataset, setCurrentDataset] = useState("main");
-	const [currentView, setCurrentView] = useState("events");
+	const [currentView, setCurrentView] = useState("timeline");
 	const [data, setData] = useState({});
+	const [width] = useWindowSize();
+	const [randomizeColor, setRandomizeColor] = useState(false);
 
 	useEffect(() => {
 		onAuthStateChanged(auth, (user) => {
@@ -62,6 +58,16 @@ function App() {
 				onValue(userDataRef, (snapshot) => {
 					const data = snapshot.val();
 					console.log("User data:", data);
+
+					if (data && randomizeColor) {
+						Object.keys(data[currentDataset].ranges).forEach(
+							(range_id) => (data[currentDataset].ranges[range_id].accentHue = Math.random() * 361 - 1)
+						);
+						Object.keys(data[currentDataset].events).forEach(
+							(event_id) => (data[currentDataset].events[event_id].accentHue = Math.random() * 361 - 1)
+						);
+					}
+
 					if (data) setData(data);
 					else setData({});
 					setDataRetrieved(true);
@@ -70,27 +76,47 @@ function App() {
 		});
 	}, []);
 
+	if (width <= 565)
+		return (
+			<div
+				style={{
+					width: width - 40,
+					height: "100%",
+					padding: 20,
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+				}}>
+				<h1 style={{ fontSize: 18, textAlign: "center" }}>
+					Sorry, your screen is too small to use Flynn's Timline.
+				</h1>
+			</div>
+		);
+
 	return (
 		<div className={"App" + (!signedIn || !dataRetrieved || currentView === "timeline" ? " AppHideSidebar" : "")}>
 			<header>
 				<h1>Flynn's Timeline</h1>
 				{signedIn && dataRetrieved && (
 					<div className="headerActions">
-						<h1
-							style={{ cursor: "pointer", color: currentView !== "events" && "#fff9" }}
+						<div
+							className={`headerTab ${currentView === "events" ? "headerTabSelected" : ""}`}
 							onClick={() => setCurrentView("events")}>
-							Events
-						</h1>
-						<h1
-							style={{ cursor: "pointer", color: currentView !== "ranges" && "#fff9" }}
+							<span className="material-symbols-outlined">event</span>
+							<h1>Events</h1>
+						</div>
+						<div
+							className={`headerTab ${currentView === "ranges" ? "headerTabSelected" : ""}`}
 							onClick={() => setCurrentView("ranges")}>
-							Ranges
-						</h1>
-						<h1
-							style={{ cursor: "pointer", color: currentView !== "timeline" && "#fff9" }}
+							<span className="material-symbols-outlined">arrow_range</span>
+							<h1>Ranges</h1>
+						</div>
+						<div
+							className={`headerTab ${currentView === "timeline" ? "headerTabSelected" : ""}`}
 							onClick={() => setCurrentView("timeline")}>
-							Timeline
-						</h1>
+							<span className="material-symbols-outlined">timeline</span>
+							<h1>Timeline</h1>
+						</div>
 					</div>
 				)}
 			</header>
@@ -101,7 +127,7 @@ function App() {
 					) : currentView === "ranges" ? (
 						<RangeView ranges={data[currentDataset]?.ranges ?? {}} />
 					) : currentView === "timeline" ? (
-						<TimelineView dataset={data[currentDataset]} />
+						<TimelineView dataset={data[currentDataset] ?? {}} />
 					) : null}
 					{currentView === "events" ? (
 						<CreateEventSidebar data={data} setData={setData} currentDataset={currentDataset} />
