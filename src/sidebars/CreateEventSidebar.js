@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ref, set } from "firebase/database";
 import { auth, db } from "../App";
 
-function CreateEventSidebar({ data, setData, currentDataset }) {
+function CreateEventSidebar({ data, currentDataset }) {
 	const [validationError, setValidationError] = useState("");
 
 	// Checkbox States
@@ -84,6 +84,13 @@ function CreateEventSidebar({ data, setData, currentDataset }) {
 			</div>
 			<h2>Notes</h2>
 			<textarea name="notes" />
+			<h2>Category</h2>
+			{/* <select name="category">
+				<option>--none--</option>
+				<option>Cars</option>
+				<option>Phones</option>
+				<option>Houses</option>
+			</select> */}
 			<input type="submit" />
 			{validationError && (
 				<h2 style={{ margin: 0, alignSelf: "center", color: "hsl(0deg 70% 60%)" }}>{validationError}</h2>
@@ -93,14 +100,3 @@ function CreateEventSidebar({ data, setData, currentDataset }) {
 }
 
 export default CreateEventSidebar;
-
-/*function CreateEventSidebar() {
-	return (
-		<div className="sidebar eventSidebar">
-			<h1>Create Event</h1>
-		</div>
-	);
-}
-
-export default CreateEventSidebar;
-*/

@@ -31,19 +31,179 @@ header {
 
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 }
 
 header h1 {
 	font-size: 24px;
 }
 
-.headerActions {
+/* Header - Select Dataset */
+
+.headerSelectDataset {
+	max-width: 160px;
+	margin-left: 10px;
+
+	background-color: hsl(220deg 5% 24%);
+}
+
+.headerSelectDataset:hover {
+	background-color: hsl(220deg 5% 28%);
+}
+
+.headerSelectDataset>h1 {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.headerSelectDataset:hover>h1,
+.headerSelectDataset:hover>span {
+	color: #fff;
+}
+
+.headerSelectDataset>h1,
+.headerSelectDataset>span {
+	font-size: 18px;
+	color: #fffc;
+}
+
+.headerSelectDataset:active {
+	background-color: hsl(220deg 5% 24%);
+}
+
+.headerSelectDatasetOpened {
+	background-color: hsl(220deg 5% 28%);
+}
+
+.headerSelectDatasetOpened>h1,
+.headerSelectDatasetOpened>span {
+	color: #fff;
+}
+
+/* Select Dataset - Dropdown */
+
+.selectDatasetDropdown {
+	position: absolute;
+	width: 180px;
+	top: 45px;
+	left: 195px;
+}
+
+.selectDatasetDropdown>div,
+.selectDatasetDropdown>form {
+	height: 22px;
+	padding: 5px 10px;
+
+	background-color: hsl(220deg 5% 28%);
+	cursor: pointer;
+
 	display: flex;
+	align-items: center;
+}
+
+.selectDatasetDropdown>div:hover {
+	background-color: hsl(220deg 5% 32%);
+}
+
+.selectDatasetDropdown>div:active {
+	background-color: hsl(220deg 5% 24%);
+}
+
+.selectDatasetDropdown h1 {
+	width: 100%;
+
+	font-size: 18px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.selectDatasetDropdown>div>span {
+	font-size: 20px;
+	/* pointer-events: none; */
+}
+
+.selectDatasetDropdown>div>span:hover {
+	color: #f88;
+}
+
+.selectDatasetDropdown>div>span:active {
+	color: #f55;
+}
+
+.selectDatasetDropdown>div:first-child,
+.selectDatasetDropdown>form:first-child {
+	border-top-right-radius: 15px;
+	border-top-left-radius: 15px;
+}
+
+/* Select Dataset - Create Dataset input */
+
+.selectDatasetDropdown>form {
+	height: 35px;
+
+	border-bottom-right-radius: 15px;
+	border-bottom-left-radius: 15px;
+	cursor: unset;
+
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.selectDatasetDropdown>form>input {
+	padding: 5px 10px;
+
+	font-size: 14px;
+	border-radius: 15px;
+}
+
+.selectDatasetDropdown>form>span {
+	color: #fffa;
+	cursor: pointer;
+}
+
+.selectDatasetDropdown>form>span:hover {
+	color: #fff;
+}
+
+.selectDatasetDropdown>form>span:active {
+	color: #fff8;
+}
+
+/* Select Dataset - Delete Modal */
+
+.confirmDeleteDataset {
+	margin-top: 30px;
+	padding: 5px 10px;
+
+	background-color: hsl(0deg 60% 55%);
+	border-radius: 10px;
+	cursor: pointer;
+}
+
+.confirmDeleteDataset:hover {
+	background-color: hsl(0deg 60% 60%);
+}
+
+.confirmDeleteDataset:active {
+	background-color: hsl(0deg 50% 50%);
+}
+
+.confirmDeleteDataset>h1 {
+	font-size: 20px;
+}
+
+/* Header - Actions */
+
+.headerActions {
+	margin-left: auto;
+
+	display: flex;
+	align-items: center;
 	gap: 10px;
 }
 
-.headerTab {
+.headerTab,
+.headerSelectDataset {
 	height: 25px;
 	padding: 5px 10px;
 
@@ -52,7 +212,8 @@ header h1 {
 
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	/* justify-content: center; */
+	justify-content: space-between;
 	gap: 5px;
 }
 
@@ -154,6 +315,8 @@ header h1 {
 }
 
 .sidebar input[type="submit"] {
+	margin-top: 10px;
+
 	background-color: hsl(220deg 45% 50%);
 	font-weight: bold;
 	cursor: pointer;

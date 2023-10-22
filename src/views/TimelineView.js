@@ -77,7 +77,7 @@ function renderTimeline(dataset, canvas, start, scrollY, viewRange, width, times
 				let blocked = false;
 				for (let i = 0; i < rangeLayers[layer].length; i++) {
 					const range = rangeLayers[layer][i];
-					if (fromTimestamp > range[0] && fromTimestamp < range[1]) {
+					if (fromTimestamp >= range[0] && fromTimestamp < range[1]) {
 						blocked = true;
 						break;
 					}
@@ -106,7 +106,7 @@ function renderTimeline(dataset, canvas, start, scrollY, viewRange, width, times
 		if (accentHue > -1) rangeBG = `hsl(${accentHue}deg 50% 60%)`;
 		context.beginPath();
 		context.fillStyle = rangeBG;
-		context.rect(timestampToGraph(fromTimestamp), y, timestampToGraph(toTimestamp - fromTimestamp + start), 10);
+		context.rect(timestampToGraph(fromTimestamp), y, rangeWidth, 10);
 		context.fill();
 
 		// Render text
@@ -115,11 +115,12 @@ function renderTimeline(dataset, canvas, start, scrollY, viewRange, width, times
 		context.textBaseline = "middle";
 		context.font = `bold 10px Gabarito, sans-serif`;
 		context.fillStyle = `hsl(0deg 5% 12%)`;
-		context.fillText(dataset.ranges[range_id].title, timestampToGraph(fromTimestamp + fromUncertainty) + 2, y + 5);
-		if (TBD) {
+		context.fillText(dataset.ranges[range_id].title, Math.max(timestampToGraph(fromTimestamp + fromUncertainty), 0) + 2, y + 5);
+		if (TBD && rangeWidth >= 23) {
 			context.beginPath();
 			context.fillStyle = rangeBG;
-			context.rect(timestampToGraph(toTimestamp) - Math.min(23, rangeWidth), y, Math.min(23, rangeWidth), 10);
+			context.rect(timestampToGraph(toTimestamp) - 23, y, 23, 10);
+			// context.rect(timestampToGraph(toTimestamp) - Math.min(23, rangeWidth), y, Math.min(23, rangeWidth), 10);
 			context.fill();
 
 			context.beginPath();
@@ -146,13 +147,13 @@ function renderTimeline(dataset, canvas, start, scrollY, viewRange, width, times
 			context.fill();
 		}
 	};
-	const sortedRangeIDs = sortRangesAsIDs(dataset.ranges ?? {});
+	const sortedRangeIDs = sortRangesAsIDs(dataset.ranges ?? {}, "start");
 	sortedRangeIDs.forEach((range_id) => {
 		const range = dataset.ranges[range_id];
 		const startDate = Array.isArray(range.fromDate) ? range.fromDate[0] : range.fromDate;
 		const startTime = range.fromTime ? (Array.isArray(range.fromTime) ? range.fromTime[0] : range.fromTime) : null;
-		const endDate = Array.isArray(range.toDate) ? range.toDate[0] : range.toDate;
-		const endTime = range.toTime ? (Array.isArray(range.toTime) ? range.toTime[0] : range.toTime) : null;
+		const endDate = Array.isArray(range.toDate) ? range.toDate[1] : range.toDate;
+		const endTime = range.toTime ? (Array.isArray(range.toTime) ? range.toTime[1] : range.toTime) : null;
 		drawRange(
 			convertToDate(startDate, startTime).getTime(),
 			Array.isArray(range.fromDate)
@@ -276,6 +277,13 @@ function renderTimeline(dataset, canvas, start, scrollY, viewRange, width, times
 			}
 		}
 	}
+	// Draw "now" (today) line
+	const nowX = timestampToGraph(Date.now());
+	context.beginPath();
+	context.moveTo(nowX, 0);
+	context.lineTo(nowX, canvas.height);
+	context.strokeStyle = "hsl(220deg 30% 60%)"
+	context.stroke();
 
 	// Reset canvas scaling
 	context.scale(0.5, 0.5);

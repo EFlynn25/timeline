@@ -118,14 +118,32 @@ export function parseEventsToMonths(events) {
 	});
 	return parsedEvents;
 }
-export function sortRangesAsIDs(ranges) {
+export function sortRangesAsIDs(ranges, sortType = "between") {
 	if (!ranges) return [];
+
+	const dateHinge = (date) => {
+		const start = Array.isArray(date) ? date[0] : date;
+		const end = Array.isArray(date) ? date[1] : date;
+		return sortType === "start" ? start : betweenDates(date);
+	};
 
 	const dateInt = (date) => parseInt(date.slice(6) + date.slice(0, 2) + date.slice(3, 5));
 	const sortedRangeIDs = Object.keys(ranges).sort(
-		(a, b) => dateInt(betweenDates(ranges[a].fromDate)) - dateInt(betweenDates(ranges[b].fromDate))
+		(a, b) =>
+			dateInt(betweenDates(dateHinge(ranges[a].fromDate))) - dateInt(betweenDates(dateHinge(ranges[b].fromDate)))
 	);
 	return sortedRangeIDs;
+}
+export function parseRangesToCategories(ranges) {
+	if (!ranges) return {};
+
+
+
+	// const dateInt = (date) => parseInt(date.slice(6) + date.slice(0, 2) + date.slice(3, 5));
+	// const sortedRangeIDs = Object.keys(ranges).sort(
+	// 	(a, b) => dateInt(betweenDates(ranges[a].fromDate)) - dateInt(betweenDates(ranges[b].fromDate))
+	// );
+	// return sortedRangeIDs;
 }
 
 /* Hooks */

@@ -39,7 +39,8 @@ h3 {
 
 p,
 input,
-textarea {
+textarea,
+select {
 	font-family: Montserrat, Verdana, sans-serif;
 }
 
@@ -53,4 +54,8 @@ select {
 	border-radius: 5px;
 	border: none;
 	outline: none;
+}
+
+input::-webkit-input-placeholder {
+	color: #fff8;
 }

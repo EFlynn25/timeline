@@ -1,0 +1,34 @@
+.modal {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+
+	visibility: hidden;
+	transition: background-color .2s, visibility 0s .2s;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modalContent {
+	background-color: hsl(220deg 5% 18%);
+	border-radius: 10px;
+	opacity: 0;
+	transform: scale(.9);
+
+	transition: opacity .2s, transform .2s;
+}
+
+.modalShow {
+	background-color: #0008;
+	visibility: visible;
+	transition: background-color .2s;
+}
+
+.modalShow .modalContent {
+	opacity: 1;
+	transform: scale(1);
+}
