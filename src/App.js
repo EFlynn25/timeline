@@ -48,7 +48,6 @@ function App() {
 	const [currentView, setCurrentView] = useState("events");
 	const [data, setData] = useState({});
 	const [width] = useWindowSize();
-	const [randomizeColor, setRandomizeColor] = useState(false);
 	const [headerSelectDatasetOpened, setHeaderSelectDatasetOpened] = useState(false);
 	const [verifyDeleteDataset, setVerifyDeleteDataset] = useState(-1);
 
@@ -87,31 +86,6 @@ function App() {
 			dbUnsubcribe();
 		};
 	}, []);
-
-	// Randomize colors (will eventually be removed)
-	useEffect(() => {
-		if (data?.[currentDataset]) {
-			if (randomizeColor) {
-				const copyData = JSON.parse(JSON.stringify(data));
-				Object.keys(copyData[currentDataset].ranges).forEach(
-					(range_id) => (copyData[currentDataset].ranges[range_id].accentHue = Math.random() * 361 - 1)
-				);
-				Object.keys(copyData[currentDataset].events).forEach(
-					(event_id) => (copyData[currentDataset].events[event_id].accentHue = Math.random() * 361 - 1)
-				);
-				setData(copyData);
-			} else {
-				const copyData = JSON.parse(JSON.stringify(data));
-				Object.keys(copyData[currentDataset].ranges).forEach(
-					(range_id) => (copyData[currentDataset].ranges[range_id].accentHue = -1)
-				);
-				Object.keys(copyData[currentDataset].events).forEach(
-					(event_id) => (copyData[currentDataset].events[event_id].accentHue = -1)
-				);
-				setData(copyData);
-			}
-		}
-	}, [randomizeColor]);
 
 	const createDataset = (e) => {
 		e.preventDefault();
@@ -254,18 +228,6 @@ function App() {
 							<span className="material-symbols-outlined">timeline</span>
 							<h1>Timeline</h1>
 						</div>
-						<div
-							style={{
-								width: 20,
-								height: 20,
-								background:
-									"radial-gradient(white, transparent 80%), conic-gradient(hsl(0deg 100% 50%), orange, yellow, green, blue, red)",
-								borderRadius: "50%",
-								border: randomizeColor ? "1px solid white" : "1px solid hsl(220deg 5% 18%)",
-								cursor: "pointer",
-							}}
-							onClick={() => setRandomizeColor(!randomizeColor)}
-						/>
 					</div>
 				)}
 			</header>
@@ -276,7 +238,7 @@ function App() {
 					) : currentView === "ranges" ? (
 						<RangeView ranges={data[currentDataset]?.ranges ?? {}} />
 					) : currentView === "timeline" ? (
-						<TimelineView dataset={data[currentDataset] ?? {}} />
+						<TimelineView data={data} currentDataset={currentDataset} />
 					) : null}
 					{currentView === "events" ? (
 						<CreateEventSidebar data={data} setData={setData} currentDataset={currentDataset} />

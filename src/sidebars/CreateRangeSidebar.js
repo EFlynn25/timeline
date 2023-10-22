@@ -30,7 +30,7 @@ function CreateRangeSidebar({ data, setData, currentDataset }) {
 		const hour12 = parseInt(timeComponents[0] % 12)
 			.toString()
 			.padStart(2, "0");
-		const ampm = timeComponents[0] - 12 <= 0 ? "am" : "pm";
+		const ampm = +timeComponents[0] - 12 < 0 ? "am" : "pm";
 		return `${hour12 === "00" ? "12" : hour12}:${timeComponents[1]}:${timeComponents[2]}${ampm}`;
 	};
 	const formSubmit = (e) => {
