@@ -1,0 +1,40 @@
+.selectAccentHue {
+	height: 30px;
+
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.selectAccentHueSlider {
+	width: auto;
+	appearance: none;
+	-webkit-appearance: none;
+
+	background-color: transparent;
+	--slider-accent-hue: 0deg;
+	--slider-accent-lightness: 65%;
+}
+
+.selectAccentHueSlider::-webkit-slider-runnable-track {
+	height: 8px;
+	top: 8px;
+
+	border: 1px solid #fff6;
+	--hue-saturation: 60%;
+	background: linear-gradient(to right, hsl(0deg var(--hue-saturation) 50%), hsl(30deg var(--hue-saturation) 50%), hsl(60deg var(--hue-saturation) 50%), hsl(90deg var(--hue-saturation) 50%), hsl(120deg var(--hue-saturation) 50%), hsl(150deg var(--hue-saturation) 50%), hsl(180deg var(--hue-saturation) 50%), hsl(210deg var(--hue-saturation) 50%), hsl(240deg var(--hue-saturation) 50%), hsl(270deg var(--hue-saturation) 50%), hsl(300deg var(--hue-saturation) 50%), hsl(330deg var(--hue-saturation) 50%), hsl(360deg var(--hue-saturation) 50%));
+	border-radius: 10px;
+}
+
+.selectAccentHueSlider::-webkit-slider-thumb {
+	appearance: none;
+	-webkit-appearance: none;
+
+	width: 15px;
+	height: 15px;
+	margin-top: -5px;
+
+	border-radius: 7.5px;
+	background-color: #f55;
+	background-color: hsl(var(--slider-accent-hue) 70% var(--slider-accent-lightness));
+}

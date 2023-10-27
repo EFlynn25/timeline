@@ -1,4 +1,6 @@
 import { useState, useLayoutEffect } from "react";
+import { auth, db } from "./App";
+import { ref, set } from "firebase/database";
 
 /* Constants */
 
@@ -110,7 +112,8 @@ export function sortRangesAsIDs(ranges, sortType = "between") {
 
 	const dateHinge = (date) => {
 		const start = Array.isArray(date) ? date[0] : date;
-		const end = Array.isArray(date) ? date[1] : date;
+		// Saving below for alternate sorting methods
+		// const end = Array.isArray(date) ? date[1] : date;
 		return sortType === "start" ? start : betweenDates(date);
 	};
 
@@ -145,13 +148,16 @@ export function parseEventsToMonths(events) {
 		}, {});
 	return parsedEvents;
 }
-export function parseEventsToCategories(events) {
+export function parseEventsToCategories(data, currentDataset, events) {
 	if (!events) return {};
 
 	const sortedEventIDs = sortEventsAsIDs(events);
 	let eventsAsCategories = {};
 	sortedEventIDs.forEach((event_id) => {
-		const myCategory = events[event_id].category?.toString() ?? "-1";
+		const eventCategory = events[event_id].category?.toString();
+		const myCategory = Object.keys(data.datasets[currentDataset].categories ?? {}).includes(eventCategory)
+			? eventCategory
+			: "-1";
 		if (!Object.keys(eventsAsCategories).includes(myCategory)) eventsAsCategories[myCategory] = [];
 		eventsAsCategories[myCategory].push(event_id);
 	});
@@ -171,6 +177,51 @@ export function parseRangesToCategories(ranges) {
 
 	return rangesAsCategories;
 }
+
+/* Misc Functions */
+
+export function createNewID(places, currentIDs) {
+	currentIDs = currentIDs.map((id) => +id);
+	let my_id = -1;
+	do {
+		my_id = Math.floor(10 ** (places - 1) + Math.random() * 9 * 10 ** (places - 1));
+	} while (currentIDs.includes(my_id));
+	return my_id;
+}
+
+export const createDataset = (data, datasetName) => {
+	if (
+		/^[A-Za-z]+$/.test(datasetName) &&
+		Object.values(data.datasets).every((dataset) => dataset.name !== datasetName)
+	) {
+		const my_id = createNewID(4, Object.keys(data.datasets));
+		set(ref(db, "timeline/users/" + auth.currentUser.uid + "/datasets/" + my_id + "/name"), datasetName);
+	}
+};
+
+export const createCategory = (data, currentDataset, categoryName) => {
+	if (
+		/^[A-Za-z]+$/.test(categoryName) &&
+		Object.values(data.datasets[currentDataset].categories ?? {}).every(
+			(category) => category.name !== categoryName
+		)
+	) {
+		const my_id = createNewID(4, Object.keys(data.datasets[currentDataset].categories ?? {}));
+		set(
+			ref(
+				db,
+				"timeline/users/" +
+					auth.currentUser.uid +
+					"/datasets/" +
+					currentDataset +
+					"/categories/" +
+					my_id +
+					"/name"
+			),
+			categoryName
+		);
+	}
+};
 
 /* Hooks */
 

@@ -1,10 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import "./App.css";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, onValue, ref, set, remove } from "firebase/database";
 import GoogleButton from "react-google-button";
-import OutsideAlerter from "./OutsideAlerter";
-import "./App.css";
+import { useWindowSize, createDataset } from "./functions";
+
+// Global Components
+import ConfirmDelete from "./GlobalComponents/ConfirmDelete";
+import Modal from "./GlobalComponents/Modal";
 
 // View Imports
 import EventView from "./views/EventView";
@@ -14,8 +18,7 @@ import TimelineView from "./views/TimelineView";
 // Sidebar Imports
 import CreateEventSidebar from "./sidebars/CreateEventSidebar";
 import CreateRangeSidebar from "./sidebars/CreateRangeSidebar";
-import { useWindowSize } from "./functions";
-import Modal from "./Modal";
+import DropdownPopout from "./sidebars/DropdownPopout";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyB4gp1SLXhtv8jzzzdUms6FPDRjLMR1FSI",
@@ -42,12 +45,18 @@ function signIn() {
 }
 
 function App() {
+	// Firebase States
 	const [signedIn, setSignedIn] = useState(null);
 	const [dataRetrieved, setDataRetrieved] = useState(false);
+
+	// App States
 	const [currentDataset, setCurrentDataset] = useState(null);
 	const [currentView, setCurrentView] = useState("events");
 	const [data, setData] = useState({});
 	const [width] = useWindowSize();
+
+	// Select Dataset States
+	const datasetSelectRef = useRef();
 	const [headerSelectDatasetOpened, setHeaderSelectDatasetOpened] = useState(false);
 	const [verifyDeleteDataset, setVerifyDeleteDataset] = useState(-1);
 
@@ -87,19 +96,6 @@ function App() {
 		};
 	}, []);
 
-	const createDataset = (e) => {
-		e.preventDefault();
-		const datasetName = Object.fromEntries(new FormData(e.target).entries()).datasetName;
-		if (/^[A-Za-z]+$/.test(datasetName) && !Object.values(data.datasets).includes(datasetName)) {
-			let my_id = -1;
-			do {
-				my_id = Math.floor(1000 + Math.random() * 9000);
-			} while (Object.keys(data.datasets).includes(my_id));
-			set(ref(db, "timeline/users/" + auth.currentUser.uid + "/datasets/" + my_id + "/name"), datasetName);
-			e.target.reset();
-		}
-	};
-
 	if (width <= 565)
 		return (
 			<div
@@ -121,93 +117,44 @@ function App() {
 		<div className={"App" + (!signedIn || !dataRetrieved || currentView === "timeline" ? " AppHideSidebar" : "")}>
 			<header>
 				<h1>Flynn's Timeline</h1>
-				<OutsideAlerter callback={() => setHeaderSelectDatasetOpened(false)}>
-					{signedIn && (
-						<div
-							className={`headerSelectDataset ${
-								headerSelectDatasetOpened ? "headerSelectDatasetOpened" : ""
-							}`}
-							onClick={() => setHeaderSelectDatasetOpened(!headerSelectDatasetOpened)}>
-							<h1>{data.datasets?.[currentDataset]?.name}</h1>
-							<span className="material-symbols-outlined">expand_more</span>
-						</div>
-					)}
-					{headerSelectDatasetOpened && (
-						<div className="selectDatasetDropdown">
-							{Object.keys(data.datasets ?? {}).map(
-								(dataset) =>
-									dataset !== currentDataset && (
-										<div
-											key={dataset}
-											onClick={() => {
-												setCurrentDataset(dataset);
-												setHeaderSelectDatasetOpened(false);
-											}}>
-											<h1>{data.datasets[dataset]?.name}</h1>
-											<span
-												onClick={(e) => {
-													e.stopPropagation();
-													setVerifyDeleteDataset(dataset);
-												}}
-												className="material-symbols-outlined">
-												delete
-											</span>
-										</div>
-									)
-							)}
-							<form onSubmit={createDataset}>
-								<input
-									type="text"
-									name="datasetName"
-									style={{ width: "100%" }}
-									placeholder="Create dataset"
-									pattern="[A-Za-z]+"
-									title="Alphabetical letters only"
-									autoComplete="off"
-									autoFocus
-								/>
-								<span className="material-symbols-outlined">done</span>
-							</form>
-						</div>
-					)}
-					<Modal show={verifyDeleteDataset > -1} onExit={() => setVerifyDeleteDataset(-1)}>
-						<div
-							style={{
-								width: "100%",
-								height: "100%",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								flexDirection: "column",
-							}}>
-							<h1>Are you sure?</h1>
-							<h2 style={{ color: "#f55", textAlign: "center", marginTop: 20 }}>
-								This will delete all the data in the dataset "
-								{data.datasets?.[verifyDeleteDataset]?.name}"!
-							</h2>
-							<div
-								className="confirmDeleteDataset"
-								onClick={() => {
-									remove(
-										ref(db, "timeline/users/" + auth.currentUser.uid + "/" + verifyDeleteDataset)
-									);
-									remove(
-										ref(
-											db,
-											"timeline/users/" +
-												auth.currentUser.uid +
-												"/datasets/" +
-												verifyDeleteDataset
-										)
-									);
-									setVerifyDeleteDataset(-1);
-									console.log(Object.keys(data.datasets ?? {})[0] ?? -1);
-								}}>
-								<h1>Delete</h1>
-							</div>
-						</div>
-					</Modal>
-				</OutsideAlerter>
+				{signedIn && (
+					<div
+						className={`dropdownSelect ${headerSelectDatasetOpened ? "dropdownSelectOpened" : ""}`}
+						style={{ maxWidth: 160, marginLeft: 10 }}
+						ref={datasetSelectRef}
+						onClick={() => setHeaderSelectDatasetOpened(!headerSelectDatasetOpened)}>
+						<h1>{data.datasets?.[currentDataset]?.name}</h1>
+						<span className="material-symbols-outlined">expand_more</span>
+					</div>
+				)}
+				<DropdownPopout
+					show={headerSelectDatasetOpened}
+					position={{ top: 45, left: 195 }}
+					onExit={() => setHeaderSelectDatasetOpened(false)}
+					selectDropdownRef={datasetSelectRef}
+					items={Object.keys(data.datasets ?? {}).map((dataset_id) => ({
+						id: dataset_id,
+						name: data.datasets[dataset_id]?.name,
+					}))}
+					itemType="dataset"
+					selected={currentDataset}
+					onSelect={(dataset_id) => setCurrentDataset(dataset_id)}
+					onCreate={(name) => createDataset(data, name)}
+					itemOptions={[{ iconName: "delete", onClick: (dataset_id) => setVerifyDeleteDataset(dataset_id) }]}
+				/>
+				<Modal show={verifyDeleteDataset > -1} onExit={() => setVerifyDeleteDataset(-1)}>
+					<ConfirmDelete
+						itemName={data.datasets?.[verifyDeleteDataset]?.name}
+						itemType="dataset"
+						onConfirm={() => {
+							remove(ref(db, "timeline/users/" + auth.currentUser.uid + "/" + verifyDeleteDataset));
+							remove(
+								ref(db, "timeline/users/" + auth.currentUser.uid + "/datasets/" + verifyDeleteDataset)
+							);
+							setVerifyDeleteDataset(-1);
+						}}
+					/>
+				</Modal>
 				{signedIn && dataRetrieved && (
 					<div className="headerActions">
 						<div
@@ -241,9 +188,9 @@ function App() {
 						<TimelineView data={data} currentDataset={currentDataset} />
 					) : null}
 					{currentView === "events" ? (
-						<CreateEventSidebar data={data} setData={setData} currentDataset={currentDataset} />
+						<CreateEventSidebar data={data} currentDataset={currentDataset} />
 					) : currentView === "ranges" ? (
-						<CreateRangeSidebar data={data} setData={setData} currentDataset={currentDataset} />
+						<CreateRangeSidebar data={data} currentDataset={currentDataset} />
 					) : null}
 				</>
 			) : signedIn === false ? (

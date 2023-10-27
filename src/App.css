@@ -37,59 +37,70 @@ header h1 {
 	font-size: 24px;
 }
 
-/* Header - Select Dataset */
+/* Dropdown Select */
 
-.headerSelectDataset {
-	max-width: 160px;
-	margin-left: 10px;
+.dropdownSelect {
+	width: fit-content;
+	padding: 5px 10px;
 
 	background-color: hsl(220deg 5% 24%);
+	border-radius: 50px;
+	cursor: pointer;
+
+	display: flex;
+	align-items: center;
 }
 
-.headerSelectDataset:hover {
+.dropdownSelect:hover {
 	background-color: hsl(220deg 5% 28%);
 }
 
-.headerSelectDataset>h1 {
+.dropdownSelect>h1,
+.dropdownSelect>span {
+	font-size: 18px;
+}
+
+.dropdownSelect>h1 {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.headerSelectDataset:hover>h1,
-.headerSelectDataset:hover>span {
+.dropdownSelect:hover>h1,
+.dropdownSelect:hover>span {
 	color: #fff;
 }
 
-.headerSelectDataset>h1,
-.headerSelectDataset>span {
+.dropdownSelect>h1,
+.dropdownSelect>span {
 	font-size: 18px;
 	color: #fffc;
 }
 
-.headerSelectDataset:active {
+.dropdownSelect:active {
 	background-color: hsl(220deg 5% 24%);
 }
 
-.headerSelectDatasetOpened {
+.dropdownSelectOpened {
 	background-color: hsl(220deg 5% 28%);
 }
 
-.headerSelectDatasetOpened>h1,
-.headerSelectDatasetOpened>span {
+.dropdownSelectOpened>h1,
+.dropdownSelectOpened>span {
 	color: #fff;
 }
 
-/* Select Dataset - Dropdown */
+/* Dropdown */
 
-.selectDatasetDropdown {
+.dropdown {
 	position: absolute;
 	width: 180px;
-	top: 45px;
-	left: 195px;
+
+	border-radius: 15px;
+	box-shadow: 0 0 20px #0005;
 }
 
-.selectDatasetDropdown>div,
-.selectDatasetDropdown>form {
+.dropdown>div,
+.dropdown>form {
 	height: 22px;
 	padding: 5px 10px;
 
@@ -100,15 +111,15 @@ header h1 {
 	align-items: center;
 }
 
-.selectDatasetDropdown>div:hover {
+.dropdown>div:hover {
 	background-color: hsl(220deg 5% 32%);
 }
 
-.selectDatasetDropdown>div:active {
+.dropdown>div:active {
 	background-color: hsl(220deg 5% 24%);
 }
 
-.selectDatasetDropdown h1 {
+.dropdown h1 {
 	width: 100%;
 
 	font-size: 18px;
@@ -116,28 +127,27 @@ header h1 {
 	text-overflow: ellipsis;
 }
 
-.selectDatasetDropdown>div>span {
+.dropdown>div>span {
 	font-size: 20px;
-	/* pointer-events: none; */
 }
 
-.selectDatasetDropdown>div>span:hover {
+.dropdown>div>span:hover {
 	color: #f88;
 }
 
-.selectDatasetDropdown>div>span:active {
+.dropdown>div>span:active {
 	color: #f55;
 }
 
-.selectDatasetDropdown>div:first-child,
-.selectDatasetDropdown>form:first-child {
+.dropdown>div:first-child,
+.dropdown>form:first-child {
 	border-top-right-radius: 15px;
 	border-top-left-radius: 15px;
 }
 
-/* Select Dataset - Create Dataset input */
+/* Dropdown Input */
 
-.selectDatasetDropdown>form {
+.dropdown>form {
 	height: 35px;
 
 	border-bottom-right-radius: 15px;
@@ -149,47 +159,24 @@ header h1 {
 	gap: 5px;
 }
 
-.selectDatasetDropdown>form>input {
+.dropdown>form>input {
 	padding: 5px 10px;
 
 	font-size: 14px;
 	border-radius: 15px;
 }
 
-.selectDatasetDropdown>form>span {
+.dropdown>form>span {
 	color: #fffa;
 	cursor: pointer;
 }
 
-.selectDatasetDropdown>form>span:hover {
+.dropdown>form>span:hover {
 	color: #fff;
 }
 
-.selectDatasetDropdown>form>span:active {
+.dropdown>form>span:active {
 	color: #fff8;
-}
-
-/* Select Dataset - Delete Modal */
-
-.confirmDeleteDataset {
-	margin-top: 30px;
-	padding: 5px 10px;
-
-	background-color: hsl(0deg 60% 55%);
-	border-radius: 10px;
-	cursor: pointer;
-}
-
-.confirmDeleteDataset:hover {
-	background-color: hsl(0deg 60% 60%);
-}
-
-.confirmDeleteDataset:active {
-	background-color: hsl(0deg 50% 50%);
-}
-
-.confirmDeleteDataset>h1 {
-	font-size: 20px;
 }
 
 /* Header - Actions */
@@ -212,7 +199,6 @@ header h1 {
 
 	display: flex;
 	align-items: center;
-	/* justify-content: center; */
 	justify-content: space-between;
 	gap: 5px;
 }
@@ -247,6 +233,7 @@ header h1 {
 .view {
 	padding: 20px;
 	padding-left: 40px;
+	overflow-y: scroll;
 
 	grid-area: view;
 }
@@ -328,4 +315,50 @@ header h1 {
 
 .sidebar input[type="submit"]:active {
 	background-color: hsl(220deg 45% 45%);
+}
+
+.sidebar input[type="range"] {
+	width: auto;
+	appearance: none;
+	-webkit-appearance: none;
+
+	background-color: transparent;
+	--slider-accent-hue: 0deg;
+	--slider-accent-lightness: 65%;
+}
+
+.sidebar input[type="range"]::-webkit-slider-runnable-track {
+	height: 8px;
+	top: 8px;
+
+	border: 1px solid #fff6;
+	--hue-saturation: 60%;
+	background: linear-gradient(to right, hsl(0deg var(--hue-saturation) 50%), hsl(30deg var(--hue-saturation) 50%), hsl(60deg var(--hue-saturation) 50%), hsl(90deg var(--hue-saturation) 50%), hsl(120deg var(--hue-saturation) 50%), hsl(150deg var(--hue-saturation) 50%), hsl(180deg var(--hue-saturation) 50%), hsl(210deg var(--hue-saturation) 50%), hsl(240deg var(--hue-saturation) 50%), hsl(270deg var(--hue-saturation) 50%), hsl(300deg var(--hue-saturation) 50%), hsl(330deg var(--hue-saturation) 50%), hsl(360deg var(--hue-saturation) 50%));
+	border-radius: 10px;
+}
+
+.sidebar input[type="range"]::-webkit-slider-thumb {
+	appearance: none;
+	-webkit-appearance: none;
+
+	width: 15px;
+	height: 15px;
+	margin-top: -5px;
+
+	border-radius: 7.5px;
+	background-color: #f55;
+	background-color: hsl(var(--slider-accent-hue) 70% var(--slider-accent-lightness));
+}
+
+.sidebarIconButton {
+	color: #fffc;
+	cursor: pointer;
+}
+
+.sidebarIconButton:hover {
+	color: #fff;
+}
+
+.sidebarIconButton:active {
+	color: #fffa;
 }

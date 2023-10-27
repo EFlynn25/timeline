@@ -1,0 +1,18 @@
+/* Save Changes Button */
+
+.categoryOptionsSaveChanges {
+	padding: 5px 10px;
+
+	--accent-hue: 220deg;
+	background-color: hsl(var(--accent-hue) 40% 40%);
+	border-radius: 10px;
+	cursor: pointer;
+}
+
+.categoryOptionsSaveChanges:hover {
+	background-color: hsl(var(--accent-hue) 40% 45%);
+}
+
+.categoryOptionsSaveChanges:active {
+	background-color: hsl(var(--accent-hue) 40% 35%);
+}

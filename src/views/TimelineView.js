@@ -16,8 +16,12 @@ import {
 
 function renderTimelineSection(context, data, currentDataset, category, start, startY, timestampToGraph) {
 	const dataset = data[currentDataset];
+	const categoryEventIDs = parseEventsToCategories(data, currentDataset, dataset?.events)?.[category] ?? [];
+	const categoryRangeIDs = parseRangesToCategories(dataset?.ranges)?.[category] ?? [];
 	const accentHue = data.datasets[currentDataset].categories?.[category]?.accentHue ?? -1;
 	let currentStartY = startY;
+
+	if (categoryEventIDs.length === 0 && categoryRangeIDs.length === 0) return [{}, {}, 0];
 
 	// Draw title
 	if (category > -1) {
@@ -40,9 +44,9 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 		context.beginPath();
 		context.arc(x, (y || 0) + currentStartY + r, r, 0, 2 * Math.PI);
 		context.fillStyle = "white";
-		if (accentHue > -1) context.fillStyle = `hsl(${accentHue}deg 50% 60%)`;
+		if (accentHue > -1) context.fillStyle = `hsl(${accentHue}deg 50% 65%)`;
 		if (dataset.events[event_id].accentHue > -1)
-			context.fillStyle = `hsl(${dataset.events[event_id].accentHue}deg 50% 60%)`;
+			context.fillStyle = `hsl(${dataset.events[event_id].accentHue}deg 50% 65%)`;
 		context.fill();
 		eventsDisplayed[event_id] = [
 			[x - r, y + currentStartY],
@@ -51,8 +55,8 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 		if (y + r > eventsDepth) eventsDepth = y + r * 2;
 	};
 	let eventDatesDisplayed = {};
-	const eventsAsCategories = parseEventsToCategories(dataset?.events);
-	(eventsAsCategories[category] ?? []).forEach((event_id) => {
+	// (eventsAsCategories[category] ?? []).forEach((event_id) => {
+	categoryEventIDs.forEach((event_id) => {
 		const event = dataset.events[event_id];
 		let date = convertToDate(event.date, event.time);
 
@@ -109,8 +113,8 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 		// Render range
 		let rangeBG = "hsl(220deg 5% 100%)";
 		let rangeWidth = timestampToGraph(toTimestamp - fromTimestamp + start);
-		if (accentHue > -1) rangeBG = `hsl(${accentHue}deg 50% 60%)`;
-		if (myAccentHue > -1) rangeBG = `hsl(${myAccentHue}deg 50% 60%)`;
+		if (accentHue > -1) rangeBG = `hsl(${accentHue}deg 50% 65%)`;
+		if (myAccentHue > -1) rangeBG = `hsl(${myAccentHue}deg 50% 65%)`;
 		context.beginPath();
 		context.fillStyle = rangeBG;
 		context.rect(timestampToGraph(fromTimestamp), y, rangeWidth, 10);
@@ -159,9 +163,8 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 			context.fill();
 		}
 	};
-	// const sortedRangeIDs = sortRangesAsIDs(dataset?.ranges ?? {}, "start");
-	const rangesAsCategories = parseRangesToCategories(dataset?.ranges);
-	(rangesAsCategories[category] ?? []).forEach((range_id) => {
+	// (rangesAsCategories[category] ?? []).forEach((range_id) => {
+	categoryRangeIDs.forEach((range_id) => {
 		const range = dataset.ranges[range_id];
 		const startDate = Array.isArray(range.fromDate) ? range.fromDate[0] : range.fromDate;
 		const startTime = range.fromTime ? (Array.isArray(range.fromTime) ? range.fromTime[0] : range.fromTime) : null;
@@ -183,8 +186,6 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 	});
 
 	return [rangesDisplayed, eventsDisplayed, currentStartY - startY + Object.keys(rangeLayers).length * 15 - 5];
-	// return [rangesDisplayed, eventsDisplayed, eventsDepth + Object.keys(rangeLayers).length * 25];
-	// return [rangesDisplayed, eventsDisplayed, eventsDepth, rangeLayers];
 }
 
 function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange, width, timestampToGraph) {
@@ -447,18 +448,18 @@ function TimelineView({ data, currentDataset }) {
 					timestampToGraph
 				)
 			);
-	}, [dataset, canvasRef, start, scrollY, viewRange, width, height, timestampToGraph]);
+	}, [data, currentDataset, canvasRef, start, scrollY, viewRange, width, timestampToGraph]);
 
 	let tooltipRangeAccentHue = -1;
 	if (showRangeTooltip > -1) {
 		if (tooltipRange.category > -1)
-			tooltipRangeAccentHue = data.datasets[currentDataset].categories[tooltipRange.category].accentHue;
+			tooltipRangeAccentHue = data.datasets[currentDataset].categories?.[tooltipRange.category]?.accentHue ?? -1;
 		if (tooltipRange.accentHue > -1) tooltipRangeAccentHue = tooltipRange.accentHue;
 	}
 	let tooltipEventAccentHue = -1;
 	if (showEventTooltip > -1) {
 		if (tooltipEvent.category > -1)
-			tooltipEventAccentHue = data.datasets[currentDataset].categories[tooltipEvent.category].accentHue;
+			tooltipEventAccentHue = data.datasets[currentDataset].categories?.[tooltipEvent.category]?.accentHue ?? -1;
 		if (tooltipEvent.accentHue > -1) tooltipEventAccentHue = tooltipEvent.accentHue;
 	}
 	return (
