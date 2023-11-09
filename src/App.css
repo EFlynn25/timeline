@@ -246,6 +246,7 @@ header h1 {
 
 	background-color: hsl(220deg 5% 18%);
 	border-radius: 10px;
+	overflow-y: scroll;
 
 	grid-area: sidebar;
 
@@ -315,6 +316,8 @@ header h1 {
 }
 
 .sidebar textarea {
+	min-height: 2.5em;
+
 	resize: none;
 
 	flex-grow: 1;

@@ -292,7 +292,7 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
 			</Modal>
 			<Modal show={verifyDeleteEvent} onExit={() => setVerifyDeleteEvent(false)}>
 				<ConfirmDelete
-					itemName={data[currentDataset].events[editEvent]?.title}
+					itemName={data[currentDataset]?.events[editEvent]?.title}
 					itemType="the event"
 					onConfirm={() => {
 						remove(

@@ -538,7 +538,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
 			</Modal>
 			<Modal show={verifyDeleteRange} onExit={() => setVerifyDeleteRange(false)}>
 				<ConfirmDelete
-					itemName={data[currentDataset].ranges[editRange]?.title}
+					itemName={data[currentDataset]?.ranges[editRange]?.title}
 					itemType="the range"
 					onConfirm={() => {
 						remove(
