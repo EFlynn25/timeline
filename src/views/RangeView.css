@@ -1,7 +1,26 @@
-.rangeView>p {
+.range {
 	margin: 2px 0;
+	padding: 0 4px;
 	padding-left: 20px;
-	text-indent: -20px;
+	text-indent: -16px;
 
 	font-size: 16px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.range:hover {
+	background-color: #fff1;
+}
+
+.range:active,
+.rangeEditing:active {
+	color: #fffa !important;
+	background-color: #ffffff0a !important;
+}
+
+.rangeEditing,
+.rangeEditing:hover {
+	color: white;
+	background-color: #fff1;
 }

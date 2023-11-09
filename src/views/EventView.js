@@ -1,7 +1,7 @@
 import "./EventView.css";
 import { parseMonth, parseEventsToMonths } from "../functions";
 
-function EventView({ events }) {
+function EventView({ events, editEvent, setEditEvent }) {
 	if (Object.keys(events).length === 0)
 		return (
 			<div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -18,7 +18,11 @@ function EventView({ events }) {
 					<div key={month} className="eventMonth">
 						<h2>{parseMonth(month)}</h2>
 						{eventsInMonths[month].map((event) => (
-							<p key={event.id} title={event.date + (event.time ? ` at ${event.time}` : "")}>
+							<p
+								key={event.id}
+								className={`event ${editEvent === event.id ? "eventEditing" : ""}`}
+								title={event.date + (event.time ? ` at ${event.time}` : "")}
+								onClick={() => setEditEvent(editEvent !== event.id ? event.id : -1)}>
 								{event.relative} {event.date.slice(3, 5)} - {event.title}
 							</p>
 						))}

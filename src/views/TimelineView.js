@@ -55,7 +55,6 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 		if (y + r > eventsDepth) eventsDepth = y + r * 2;
 	};
 	let eventDatesDisplayed = {};
-	// (eventsAsCategories[category] ?? []).forEach((event_id) => {
 	categoryEventIDs.forEach((event_id) => {
 		const event = dataset.events[event_id];
 		let date = convertToDate(event.date, event.time);
@@ -163,7 +162,6 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 			context.fill();
 		}
 	};
-	// (rangesAsCategories[category] ?? []).forEach((range_id) => {
 	categoryRangeIDs.forEach((range_id) => {
 		const range = dataset.ranges[range_id];
 		const startDate = Array.isArray(range.fromDate) ? range.fromDate[0] : range.fromDate;

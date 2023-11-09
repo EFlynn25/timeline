@@ -51,7 +51,9 @@ function App() {
 
 	// App States
 	const [currentDataset, setCurrentDataset] = useState(null);
+	const prevDataset = useRef(currentDataset);
 	const [currentView, setCurrentView] = useState("events");
+	const prevView = useRef(currentView);
 	const [data, setData] = useState({});
 	const [width] = useWindowSize();
 
@@ -60,6 +62,11 @@ function App() {
 	const [headerSelectDatasetOpened, setHeaderSelectDatasetOpened] = useState(false);
 	const [verifyDeleteDataset, setVerifyDeleteDataset] = useState(-1);
 
+	// Edit States
+	const [editEvent, setEditEvent] = useState(-1);
+	const [editRange, setEditRange] = useState(-1);
+
+	// Effects
 	// Retrieve auth and database data
 	useEffect(() => {
 		let dbUnsubcribe;
@@ -96,6 +103,15 @@ function App() {
 		};
 	}, []);
 
+	useEffect(() => {
+		if (prevDataset.current !== currentDataset || prevView.current !== currentView) {
+			setEditEvent(-1);
+			setEditRange(-1);
+		}
+		prevDataset.current = currentDataset;
+		prevView.current = currentView;
+	}, [currentDataset, currentView]);
+
 	if (width <= 565)
 		return (
 			<div
@@ -116,7 +132,7 @@ function App() {
 	return (
 		<div className={"App" + (!signedIn || !dataRetrieved || currentView === "timeline" ? " AppHideSidebar" : "")}>
 			<header>
-				<h1>Flynn's Timeline</h1>
+				<h1 title="v0.1">Flynn's Timeline</h1>
 				{signedIn && (
 					<div
 						className={`dropdownSelect ${headerSelectDatasetOpened ? "dropdownSelectOpened" : ""}`}
@@ -145,7 +161,7 @@ function App() {
 				<Modal show={verifyDeleteDataset > -1} onExit={() => setVerifyDeleteDataset(-1)}>
 					<ConfirmDelete
 						itemName={data.datasets?.[verifyDeleteDataset]?.name}
-						itemType="dataset"
+						itemType="all the data in the dataset"
 						onConfirm={() => {
 							remove(ref(db, "timeline/users/" + auth.currentUser.uid + "/" + verifyDeleteDataset));
 							remove(
@@ -181,16 +197,34 @@ function App() {
 			{signedIn === true && dataRetrieved ? (
 				<>
 					{currentView === "events" ? (
-						<EventView events={data[currentDataset]?.events ?? {}} />
+						<EventView
+							events={data[currentDataset]?.events ?? {}}
+							editEvent={editEvent}
+							setEditEvent={setEditEvent}
+						/>
 					) : currentView === "ranges" ? (
-						<RangeView ranges={data[currentDataset]?.ranges ?? {}} />
+						<RangeView
+							ranges={data[currentDataset]?.ranges ?? {}}
+							editRange={editRange}
+							setEditRange={setEditRange}
+						/>
 					) : currentView === "timeline" ? (
 						<TimelineView data={data} currentDataset={currentDataset} />
 					) : null}
 					{currentView === "events" ? (
-						<CreateEventSidebar data={data} currentDataset={currentDataset} />
+						<CreateEventSidebar
+							data={data}
+							currentDataset={currentDataset}
+							editEvent={editEvent}
+							onCancelEdit={() => setEditEvent(-1)}
+						/>
 					) : currentView === "ranges" ? (
-						<CreateRangeSidebar data={data} currentDataset={currentDataset} />
+						<CreateRangeSidebar
+							data={data}
+							currentDataset={currentDataset}
+							editRange={editRange}
+							onCancelEdit={() => setEditRange(-1)}
+						/>
 					) : null}
 				</>
 			) : signedIn === false ? (

@@ -254,8 +254,27 @@ header h1 {
 	gap: 5px;
 }
 
-.sidebar>h1 {
+.sidebarTitle {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.sidebarTitle>h1 {
 	font-size: 20px;
+}
+
+.sidebarTitle>span {
+	color: #fffa;
+	cursor: pointer;
+}
+
+.sidebarTitle>span:hover {
+	color: #fff;
+}
+
+.sidebarTitle>span:active {
+	color: #fff8;
 }
 
 .sidebar>h2 {
@@ -301,20 +320,24 @@ header h1 {
 	flex-grow: 1;
 }
 
-.sidebar input[type="submit"] {
+.sidebar input[type="submit"],
+.sidebar input[type="button"] {
 	margin-top: 10px;
 
-	background-color: hsl(220deg 45% 50%);
+	--accent-hue: 220deg;
+	background-color: hsl(var(--accent-hue) 45% 50%);
 	font-weight: bold;
 	cursor: pointer;
 }
 
-.sidebar input[type="submit"]:hover {
-	background-color: hsl(220deg 45% 53%);
+.sidebar input[type="submit"]:hover,
+.sidebar input[type="button"]:hover {
+	background-color: hsl(var(--accent-hue) 45% 53%);
 }
 
-.sidebar input[type="submit"]:active {
-	background-color: hsl(220deg 45% 45%);
+.sidebar input[type="submit"]:active,
+.sidebar input[type="button"]:active {
+	background-color: hsl(var(--accent-hue) 45% 45%);
 }
 
 .sidebar input[type="range"] {

@@ -1,7 +1,14 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ref, set, remove } from "firebase/database";
 import { auth, db } from "../App";
-import { createNewID, createCategory } from "../functions";
+import {
+	createNewID,
+	createCategory,
+	inputToStorageDate,
+	inputToStorageTime,
+	storageToInputDate,
+	storageToInputTime,
+} from "../functions";
 
 // Local Components
 import DropdownPopout from "./DropdownPopout";
@@ -12,15 +19,19 @@ import ConfirmDelete from "../GlobalComponents/ConfirmDelete";
 import Modal from "../GlobalComponents/Modal";
 import SelectAccentHue from "../GlobalComponents/SelectAccentHue";
 
-function CreateEventSidebar({ data, currentDataset }) {
+function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
+	const prevEditEvent = useRef(editEvent);
 	const [validationError, setValidationError] = useState("");
+	const createEventStorage = useRef({});
+	const [verifyDeleteEvent, setVerifyDeleteEvent] = useState(false);
 
-	// Checkbox States
-	const [includeTime, setIncludeTime] = useState(false);
-
-	// Date/Time Input States
+	// Input States
+	const [title, setTitle] = useState("");
+	const [relative, setRelative] = useState("=");
 	const [date, setDate] = useState("");
+	const [includeTime, setIncludeTime] = useState(false);
 	const [time, setTime] = useState("");
+	const [notes, setNotes] = useState("");
 
 	// Category States
 	const [category, setCategory] = useState(-1);
@@ -34,22 +45,32 @@ function CreateEventSidebar({ data, currentDataset }) {
 	const [accentHue, setAccentHue] = useState(0);
 
 	// Functions
-	const convertInputDate = (inputDate) => `${inputDate.slice(5, 7)}/${inputDate.slice(8)}/${inputDate.slice(0, 4)}`;
-	const convertInputTime = (inputTime) => {
-		const timeComponents = inputTime.split(":");
-		const hour12 = parseInt(timeComponents[0] % 12)
-			.toString()
-			.padStart(2, "0");
-		const ampm = +timeComponents[0] - 12 < 0 ? "am" : "pm";
-		return `${hour12 === "00" ? "12" : hour12}:${timeComponents[1]}:${timeComponents[2]}${ampm}`;
+	// const inputToDataDate = (inputDate) => `${inputDate.slice(5, 7)}/${inputDate.slice(8)}/${inputDate.slice(0, 4)}`;
+	// const inputToDataTime = (inputTime) => {
+	// 	const timeComponents = inputTime.split(":");
+	// 	const hour12 = parseInt(timeComponents[0] % 12)
+	// 		.toString()
+	// 		.padStart(2, "0");
+	// 	const ampm = +timeComponents[0] - 12 < 0 ? "am" : "pm";
+	// 	return `${hour12 === "00" ? "12" : hour12}:${timeComponents[1]}:${timeComponents[2]}${ampm}`;
+	// };
+	const restoreCreateEvent = () => {
+		setTitle(createEventStorage.current.title);
+		setRelative(createEventStorage.current.relative);
+		setDate(createEventStorage.current.date);
+		setIncludeTime(createEventStorage.current.includeTime);
+		setTime(createEventStorage.current.time);
+		setNotes(createEventStorage.current.notes);
+		setCategory(createEventStorage.current.category);
+		setEnableAccentHue(createEventStorage.current.enableAccentHue);
+		setAccentHue(createEventStorage.current.accentHue);
 	};
 
 	const formSubmit = (e) => {
 		e.preventDefault();
-		const formData = Object.fromEntries(new FormData(e.target).entries());
 
 		// Validate form
-		if (!formData.title) {
+		if (!title) {
 			setValidationError("Please enter a title");
 			return;
 		}
@@ -59,34 +80,99 @@ function CreateEventSidebar({ data, currentDataset }) {
 		}
 
 		// Add event to dataset
-		const my_id = createNewID(8, Object.keys(data[currentDataset]?.events ?? {}));
+		const my_id = editEvent > -1 ? editEvent : createNewID(8, Object.keys(data[currentDataset]?.events ?? {}));
 		let newEvent = {
-			title: formData.title,
-			notes: formData.notes,
+			title,
+			notes,
 			accentHue: enableAccentHue ? accentHue : null,
 			category,
 		};
-		newEvent.date = convertInputDate(formData.date);
-		if (formData.relative !== "=") newEvent.relative = formData.relative;
-		if (includeTime) newEvent.time = convertInputTime(formData.time);
+		newEvent.date = inputToStorageDate(date);
+		if (relative !== "=") newEvent.relative = relative;
+		if (includeTime) newEvent.time = inputToStorageTime(time);
+		console.log(newEvent);
 		const eventRef = ref(db, `timeline/users/${auth.currentUser.uid}/${currentDataset}/events/${my_id}`);
 		set(eventRef, newEvent);
 
 		// Reset form
-		setIncludeTime(false);
-		setDate("");
-		setTime("");
-		setEnableAccentHue(false);
-		setAccentHue(-1);
-		e.target.reset();
+		if (editEvent > -1) {
+			restoreCreateEvent();
+			onCancelEdit();
+		} else {
+			setTitle("");
+			setRelative("=");
+			setDate("");
+			setIncludeTime(false);
+			setTime("");
+			setNotes("");
+			setCategory(-1);
+			setEnableAccentHue(false);
+			setAccentHue(0);
+		}
 	};
+
+	// Effects
+	useEffect(() => {
+		if (prevEditEvent.current !== editEvent) {
+			setValidationError("");
+			if (editEvent > -1) {
+				if (Object.keys(createEventStorage.current).length === 0)
+					createEventStorage.current = {
+						title,
+						relative,
+						date,
+						includeTime,
+						time,
+						notes,
+						category,
+						enableAccentHue,
+						accentHue,
+					};
+				const event = data[currentDataset].events[editEvent];
+
+				setTitle(event.title);
+				setRelative(event.relative ?? "=");
+				setDate(storageToInputDate(event.date));
+				setIncludeTime(!!event.time);
+				setTime(!!event.time ? storageToInputTime(event.time) : "");
+				setNotes(event.notes);
+				setCategory(event.category ?? -1);
+				setEnableAccentHue(!!event.accentHue || event.accentHue > -1);
+				setAccentHue(event.accentHue ?? 0);
+			} else {
+				restoreCreateEvent();
+				createEventStorage.current = {};
+			}
+		}
+		prevEditEvent.current = editEvent;
+	}, [
+		editEvent,
+		title,
+		relative,
+		date,
+		includeTime,
+		time,
+		notes,
+		category,
+		enableAccentHue,
+		accentHue,
+		data,
+		currentDataset,
+	]);
 
 	return (
 		<>
 			<form className="sidebar eventSidebar" onSubmit={formSubmit} onInput={() => setValidationError("")}>
-				<h1>Create Event</h1>
+				<div className="sidebarTitle">
+					{editEvent > -1 && (
+						<span className="material-symbols-outlined" onClick={onCancelEdit}>
+							close
+						</span>
+					)}
+					<h1>{editEvent === -1 ? "Create" : "Edit"} Event</h1>
+				</div>
 				<h2>Title</h2>
-				<input type="text" name="title" />
+				<input type="text" name="title" value={title} onChange={(e) => setTitle(e.target.value)} />
 				<h2>Date</h2>
 				<div className="sidebarRow">
 					<div className="sidebarCheckbox" onClick={() => setIncludeTime(!includeTime)}>
@@ -95,7 +181,7 @@ function CreateEventSidebar({ data, currentDataset }) {
 					</div>
 				</div>
 				<div className="sidebarRow">
-					<select name="relative">
+					<select name="relative" value={relative} onChange={(e) => setRelative(e.target.value)}>
 						<option>=</option>
 						<option>~</option>
 						<option>≥</option>
@@ -103,11 +189,19 @@ function CreateEventSidebar({ data, currentDataset }) {
 						<option>{"<"}</option>
 						<option>{">"}</option>
 					</select>
-					<input type="date" name="date" onInput={(e) => setDate(e.target.value)} max="9999-12-31" />
-					{includeTime && <input type="time" name="time" step="1" onInput={(e) => setTime(e.target.value)} />}
+					<input
+						type="date"
+						name="date"
+						value={date}
+						onInput={(e) => setDate(e.target.value)}
+						max="9999-12-31"
+					/>
+					{includeTime && (
+						<input type="time" name="time" step="1" value={time} onInput={(e) => setTime(e.target.value)} />
+					)}
 				</div>
 				<h2>Notes</h2>
-				<textarea name="notes" />
+				<textarea name="notes" value={notes} onInput={(e) => setNotes(e.target.value)} />
 				<h2>Category</h2>
 				<div className="sidebarRow">
 					<div
@@ -132,7 +226,7 @@ function CreateEventSidebar({ data, currentDataset }) {
 						type="checkbox"
 						checked={enableAccentHue}
 						style={{ display: "inline", margin: 0 }}
-						onChange={(e) => setEnableAccentHue(!enableAccentHue)}
+						onChange={() => setEnableAccentHue(!enableAccentHue)}
 					/>
 				</div>
 				<SelectAccentHue
@@ -144,6 +238,16 @@ function CreateEventSidebar({ data, currentDataset }) {
 					setAccentHue={setAccentHue}
 				/>
 				<input type="submit" />
+				{editEvent > -1 && (
+					<input
+						type="button"
+						value="Delete"
+						style={{ marginTop: 0, "--accent-hue": "0deg" }}
+						onClick={() => {
+							setVerifyDeleteEvent(true);
+						}}
+					/>
+				)}
 				{validationError && (
 					<h2 style={{ margin: 0, alignSelf: "center", color: "hsl(0deg 70% 60%)" }}>{validationError}</h2>
 				)}
@@ -169,7 +273,7 @@ function CreateEventSidebar({ data, currentDataset }) {
 			<Modal show={verifyDeleteCategory > -1} onExit={() => setVerifyDeleteCategory(-1)}>
 				<ConfirmDelete
 					itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory]?.name}
-					itemType="category"
+					itemType="the category"
 					onConfirm={() => {
 						remove(
 							ref(
@@ -183,6 +287,22 @@ function CreateEventSidebar({ data, currentDataset }) {
 							)
 						);
 						setVerifyDeleteCategory(-1);
+					}}
+				/>
+			</Modal>
+			<Modal show={verifyDeleteEvent} onExit={() => setVerifyDeleteEvent(false)}>
+				<ConfirmDelete
+					itemName={data[currentDataset].events[editEvent]?.title}
+					itemType="the event"
+					onConfirm={() => {
+						remove(
+							ref(
+								db,
+								"timeline/users/" + auth.currentUser.uid + "/" + currentDataset + "/events/" + editEvent
+							)
+						);
+						onCancelEdit();
+						setVerifyDeleteEvent(false);
 					}}
 				/>
 			</Modal>

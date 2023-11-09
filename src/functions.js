@@ -47,6 +47,26 @@ export function numericTime(time) {
 				(time[8] === "p" ? 120000 : 0) -
 				(+time.slice(0, 2) === 12 ? 120000 : 0);
 }
+export function inputToStorageDate(inputDate) {
+	return `${inputDate.slice(5, 7)}/${inputDate.slice(8)}/${inputDate.slice(0, 4)}`;
+}
+export function inputToStorageTime(inputTime) {
+	const timeComponents = inputTime.split(":");
+	const hour12 = parseInt(timeComponents[0] % 12)
+		.toString()
+		.padStart(2, "0");
+	const ampm = +timeComponents[0] - 12 < 0 ? "am" : "pm";
+	return `${hour12 === "00" ? "12" : hour12}:${timeComponents[1]}:${timeComponents[2]}${ampm}`;
+}
+export function storageToInputDate(date) {
+	return `${date.slice(6)}-${date.slice(0, 2)}-${date.slice(3, 5)}`;
+}
+export function storageToInputTime(time) {
+	const hour = +time.slice(0, 2);
+	const pm = time[8] === "p";
+	const newHour = hour + (!pm && hour === 12 ? -12 : pm && hour !== 12 ? 12 : 0);
+	return `${newHour.toString().padStart(2, "0")}:${time.slice(3, 5)}:${time.slice(6, 8)}`;
+}
 export function parseDate(date) {
 	if (date === "TBD") return date;
 	const dateComponents = date.split("/");

@@ -10,7 +10,9 @@
 	text-transform: uppercase;
 }
 
-.eventMonth>p {
+/* Events */
+
+.event {
 	padding: 2px 4px;
 	font-size: 16px;
 	border-radius: 5px;
@@ -18,11 +20,18 @@
 	cursor: pointer;
 }
 
-.eventMonth>p:hover {
+.event:hover {
 	background-color: #fff1;
 }
 
-.eventMonth>p:active {
-	color: #fffa;
-	background-color: #ffffff0a;
+.event:active,
+.eventEditing:active {
+	color: #fffa !important;
+	background-color: #ffffff0a !important;
+}
+
+.eventEditing,
+.eventEditing:hover {
+	color: white;
+	background-color: #fff1;
 }
