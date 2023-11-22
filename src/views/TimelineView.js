@@ -326,6 +326,7 @@ function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange,
 			}
 		}
 	}
+	
 	// Draw "now" (today) line
 	const nowX = timestampToGraph(Date.now());
 	context.beginPath();
@@ -335,7 +336,7 @@ function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange,
 	context.stroke();
 
 	// Reset canvas scaling
-	context.scale(0.5, 0.5);
+	context.scale(1 / window.devicePixelRatio, 1 / window.devicePixelRatio);
 
 	return {
 		events: eventsDisplayed,
