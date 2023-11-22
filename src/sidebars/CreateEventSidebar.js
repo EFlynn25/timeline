@@ -90,7 +90,6 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
 		newEvent.date = inputToStorageDate(date);
 		if (relative !== "=") newEvent.relative = relative;
 		if (includeTime) newEvent.time = inputToStorageTime(time);
-		console.log(newEvent);
 		const eventRef = ref(db, `timeline/users/${auth.currentUser.uid}/${currentDataset}/events/${my_id}`);
 		set(eventRef, newEvent);
 

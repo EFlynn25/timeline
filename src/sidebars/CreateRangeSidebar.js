@@ -210,7 +210,6 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
 						accentHue,
 					};
 				const range = data[currentDataset].ranges[editRange];
-				console.log(range);
 				const thisUncertainFrom = Array.isArray(range.fromDate);
 				const thisTBD = range.toDate === "TBD";
 				const thisUncertainTo = Array.isArray(range.toDate);
@@ -247,7 +246,33 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
 			}
 		}
 		prevEditRange.current = editRange;
-	});
+	}, [
+		editRange,
+		title,
+		uncertainFrom,
+		includeTimeFrom,
+		fromRelativeStart,
+		fromRelativeEnd,
+		fromDateStart,
+		fromDateEnd,
+		fromTimeStart,
+		fromTimeEnd,
+		TBD,
+		uncertainTo,
+		includeTimeTo,
+		toRelativeStart,
+		toRelativeEnd,
+		toDateStart,
+		toDateEnd,
+		toTimeStart,
+		toTimeEnd,
+		notes,
+		category,
+		enableAccentHue,
+		accentHue,
+		data,
+		currentDataset,
+	]);
 
 	return (
 		<>

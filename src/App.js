@@ -1,3 +1,7 @@
+// TODO... Sorting and filtering for event and range views
+//             (date sorting, searching)
+//     ... Dataset renaming (or other editing)
+
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { initializeApp } from "firebase/app";
@@ -204,6 +208,8 @@ function App() {
 						/>
 					) : currentView === "ranges" ? (
 						<RangeView
+							data={data}
+							currentDataset={currentDataset}
 							ranges={data[currentDataset]?.ranges ?? {}}
 							editRange={editRange}
 							setEditRange={setEditRange}
