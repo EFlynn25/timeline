@@ -1,6 +1,5 @@
 // TODO... Sorting and filtering for event and range views
 //             (date sorting, searching)
-//     ... Dataset renaming (or other editing)
 
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
@@ -23,6 +22,7 @@ import TimelineView from "./views/TimelineView";
 import CreateEventSidebar from "./sidebars/CreateEventSidebar";
 import CreateRangeSidebar from "./sidebars/CreateRangeSidebar";
 import DropdownPopout from "./sidebars/DropdownPopout";
+import DatasetOptions from "./GlobalComponents/DatasetOptions";
 
 const firebaseConfig = {
 	apiKey: "AIzaSyB4gp1SLXhtv8jzzzdUms6FPDRjLMR1FSI",
@@ -65,6 +65,7 @@ function App() {
 	const datasetSelectRef = useRef();
 	const [headerSelectDatasetOpened, setHeaderSelectDatasetOpened] = useState(false);
 	const [verifyDeleteDataset, setVerifyDeleteDataset] = useState(-1);
+	const [showDatasetOptions, setShowDatasetOptions] = useState(-1);
 
 	// Edit States
 	const [editEvent, setEditEvent] = useState(-1);
@@ -147,6 +148,12 @@ function App() {
 						<span className="material-symbols-outlined">expand_more</span>
 					</div>
 				)}
+				<span
+					className="material-symbols-outlined sidebarIconButton"
+					style={{ marginLeft: 5 }}
+					onClick={() => setShowDatasetOptions(currentDataset)}>
+					settings
+				</span>
 				<DropdownPopout
 					show={headerSelectDatasetOpened}
 					position={{ top: 45, left: 195 }}
@@ -174,6 +181,9 @@ function App() {
 							setVerifyDeleteDataset(-1);
 						}}
 					/>
+				</Modal>
+				<Modal show={showDatasetOptions > -1} onExit={() => setShowDatasetOptions(-1)}>
+					<DatasetOptions data={data} dataset={currentDataset} />
 				</Modal>
 				{signedIn && dataRetrieved && (
 					<div className="headerActions">

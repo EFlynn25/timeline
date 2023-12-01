@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import "./CategoryOptions.css";
+import "./OptionsModal.css";
 import { db, auth } from "../App";
 import { ref, set } from "firebase/database";
 
@@ -29,7 +29,7 @@ function CategoryOptions({ data, dataset, categoryID }) {
 				<h1 style={{ fontSize: 24 }}>Category Settings</h1>
 				{(category.name !== nameInput || +(category.accentHue ?? -1) !== +accentHue) && (
 					<div
-						className="categoryOptionsSaveChanges"
+						className="optionsModalSaveChanges"
 						style={{
 							"--accent-hue": `${accentHue > -1 ? accentHue : 220}deg`,
 						}}

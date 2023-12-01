@@ -1,6 +1,6 @@
 /* Save Changes Button */
 
-.categoryOptionsSaveChanges {
+.optionsModalSaveChanges {
 	padding: 5px 10px;
 
 	--accent-hue: 220deg;
@@ -9,10 +9,10 @@
 	cursor: pointer;
 }
 
-.categoryOptionsSaveChanges:hover {
+.optionsModalSaveChanges:hover {
 	background-color: hsl(var(--accent-hue) 40% 45%);
 }
 
-.categoryOptionsSaveChanges:active {
+.optionsModalSaveChanges:active {
 	background-color: hsl(var(--accent-hue) 40% 35%);
 }
