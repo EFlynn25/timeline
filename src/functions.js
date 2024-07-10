@@ -137,11 +137,13 @@ export function sortRangesAsIDs(ranges, sortType = "between") {
 		return sortType === "start" ? start : betweenDates(date);
 	};
 
-	const sortedRangeIDs = Object.keys(ranges).sort(
-		(a, b) =>
-			numericDate(betweenDates(dateHinge(ranges[a].fromDate))) -
-			numericDate(betweenDates(dateHinge(ranges[b].fromDate)))
-	);
+	const sortedRangeIDs = Object.keys(ranges)
+		.filter((range_id) => ranges[range_id] !== undefined)
+		.sort(
+			(a, b) =>
+				numericDate(betweenDates(dateHinge(ranges[a].fromDate))) -
+				numericDate(betweenDates(dateHinge(ranges[b].fromDate)))
+		);
 	return sortedRangeIDs;
 }
 export function parseEventsToMonths(events) {

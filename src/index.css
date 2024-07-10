@@ -59,3 +59,22 @@ select {
 input::-webkit-input-placeholder {
 	color: #fff8;
 }
+
+/* Scrollbar */
+
+::-webkit-scrollbar {
+	width: 5px;
+	background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: #fff1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: #fff2;
+}
+
+::-webkit-scrollbar-thumb:active {
+	background-color: #fff1;
+}

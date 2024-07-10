@@ -45,15 +45,6 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
 	const [accentHue, setAccentHue] = useState(0);
 
 	// Functions
-	// const inputToDataDate = (inputDate) => `${inputDate.slice(5, 7)}/${inputDate.slice(8)}/${inputDate.slice(0, 4)}`;
-	// const inputToDataTime = (inputTime) => {
-	// 	const timeComponents = inputTime.split(":");
-	// 	const hour12 = parseInt(timeComponents[0] % 12)
-	// 		.toString()
-	// 		.padStart(2, "0");
-	// 	const ampm = +timeComponents[0] - 12 < 0 ? "am" : "pm";
-	// 	return `${hour12 === "00" ? "12" : hour12}:${timeComponents[1]}:${timeComponents[2]}${ampm}`;
-	// };
 	const restoreCreateEvent = () => {
 		setTitle(createEventStorage.current.title);
 		setRelative(createEventStorage.current.relative);
@@ -200,7 +191,9 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
 					)}
 				</div>
 				<h2>Notes</h2>
-				<textarea name="notes" value={notes} onInput={(e) => setNotes(e.target.value)} />
+				<div className="textareaWrapper">
+					<textarea name="notes" value={notes} onInput={(e) => setNotes(e.target.value)} />
+				</div>
 				<h2>Category</h2>
 				<div className="sidebarRow">
 					<div

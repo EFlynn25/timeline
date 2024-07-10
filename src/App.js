@@ -138,22 +138,24 @@ function App() {
 		<div className={"App" + (!signedIn || !dataRetrieved || currentView === "timeline" ? " AppHideSidebar" : "")}>
 			<header>
 				<h1 title="v0.1">Flynn's Timeline</h1>
-				{signedIn && (
-					<div
-						className={`dropdownSelect ${headerSelectDatasetOpened ? "dropdownSelectOpened" : ""}`}
-						style={{ maxWidth: 160, marginLeft: 10 }}
-						ref={datasetSelectRef}
-						onClick={() => setHeaderSelectDatasetOpened(!headerSelectDatasetOpened)}>
-						<h1>{data.datasets?.[currentDataset]?.name}</h1>
-						<span className="material-symbols-outlined">expand_more</span>
-					</div>
+				{signedIn && dataRetrieved && (
+					<>
+						<div
+							className={`dropdownSelect ${headerSelectDatasetOpened ? "dropdownSelectOpened" : ""}`}
+							style={{ maxWidth: 160, marginLeft: 10 }}
+							ref={datasetSelectRef}
+							onClick={() => setHeaderSelectDatasetOpened(!headerSelectDatasetOpened)}>
+							<h1>{data.datasets?.[currentDataset]?.name}</h1>
+							<span className="material-symbols-outlined">expand_more</span>
+						</div>
+						<span
+							className="material-symbols-outlined sidebarIconButton"
+							style={{ marginLeft: 5 }}
+							onClick={() => setShowDatasetOptions(currentDataset)}>
+							settings
+						</span>
+					</>
 				)}
-				<span
-					className="material-symbols-outlined sidebarIconButton"
-					style={{ marginLeft: 5 }}
-					onClick={() => setShowDatasetOptions(currentDataset)}>
-					settings
-				</span>
 				<DropdownPopout
 					show={headerSelectDatasetOpened}
 					position={{ top: 45, left: 195 }}
@@ -227,20 +229,31 @@ function App() {
 					) : currentView === "timeline" ? (
 						<TimelineView data={data} currentDataset={currentDataset} />
 					) : null}
-					{currentView === "events" ? (
-						<CreateEventSidebar
-							data={data}
-							currentDataset={currentDataset}
-							editEvent={editEvent}
-							onCancelEdit={() => setEditEvent(-1)}
-						/>
-					) : currentView === "ranges" ? (
-						<CreateRangeSidebar
-							data={data}
-							currentDataset={currentDataset}
-							editRange={editRange}
-							onCancelEdit={() => setEditRange(-1)}
-						/>
+					{currentView !== "timeline" ? (
+						<div
+							style={{
+								margin: "20px",
+								borderRadius: "10px",
+								overflow: "hidden",
+								gridArea: "sidebar",
+								display: "flex",
+							}}>
+							{currentView === "events" ? (
+								<CreateEventSidebar
+									data={data}
+									currentDataset={currentDataset}
+									editEvent={editEvent}
+									onCancelEdit={() => setEditEvent(-1)}
+								/>
+							) : currentView === "ranges" ? (
+								<CreateRangeSidebar
+									data={data}
+									currentDataset={currentDataset}
+									editRange={editRange}
+									onCancelEdit={() => setEditRange(-1)}
+								/>
+							) : null}
+						</div>
 					) : null}
 				</>
 			) : signedIn === false ? (

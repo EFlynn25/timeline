@@ -1,14 +1,10 @@
 import "./RangeView.css";
 import { parseRangeDate, parseRangeTitle, parseRangesToCategories, sortRangesAsIDs } from "../functions";
-import { useEffect, useState, useRef } from "react";
+import { useState } from "react";
 
 function RangeView({ data, currentDataset, ranges, editRange, setEditRange }) {
 	const [splitIntoCategories, setSplitIntoCategories] = useState(true);
-	let parsedRangesInCategories = useRef(parseRangesToCategories(ranges));
-
-	useEffect(() => {
-		parsedRangesInCategories.current = parseRangesToCategories(ranges);
-	});
+	let parsedRangesInCategories = parseRangesToCategories(ranges);
 
 	const createRangeEntry = (range_id) => {
 		const range = ranges[range_id];
@@ -48,7 +44,7 @@ function RangeView({ data, currentDataset, ranges, editRange, setEditRange }) {
 
 			{splitIntoCategories
 				? [-1].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).map((category_id) => {
-						if (!Object.keys(parsedRangesInCategories.current).includes(category_id.toString()))
+						if (!Object.keys(parsedRangesInCategories).includes(category_id.toString()))
 							return null;
 
 						return (
@@ -59,7 +55,7 @@ function RangeView({ data, currentDataset, ranges, editRange, setEditRange }) {
 									</h2>
 								)}
 								{sortRangesAsIDs(
-									parsedRangesInCategories.current[category_id].reduce(
+									parsedRangesInCategories[category_id].reduce(
 										(acc, cur) => ({ ...acc, [cur]: ranges[cur] }),
 										{}
 									)

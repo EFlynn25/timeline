@@ -241,18 +241,18 @@ header h1 {
 /* Sidebar */
 
 .sidebar {
-	margin: 20px;
 	padding: 10px;
 
 	background-color: hsl(220deg 5% 18%);
 	border-radius: 10px;
-	overflow-y: scroll;
+	overflow-y: auto;
 
 	grid-area: sidebar;
 
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
+	flex-grow: 1;
 }
 
 .sidebarTitle {
@@ -315,9 +315,17 @@ header h1 {
 	padding: 0;
 }
 
-.sidebar textarea {
+.sidebar .textareaWrapper {
 	min-height: 2.5em;
 
+	border-radius: 5px;
+	overflow: hidden;
+
+	display: flex;
+	flex-grow: 1;
+}
+
+.sidebar textarea {
 	resize: none;
 
 	flex-grow: 1;

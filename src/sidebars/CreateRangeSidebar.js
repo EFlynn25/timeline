@@ -463,7 +463,9 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
 					</>
 				)}
 				<h2>Notes</h2>
-				<textarea name="notes" value={notes} onInput={(e) => setNotes(e.target.value)} />
+				<div className="textareaWrapper">
+					<textarea name="notes" value={notes} onInput={(e) => setNotes(e.target.value)} />
+				</div>
 				<h2>Category</h2>
 				<div className="sidebarRow">
 					<div
@@ -554,7 +556,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
 			</Modal>
 			<Modal show={verifyDeleteRange} onExit={() => setVerifyDeleteRange(false)}>
 				<ConfirmDelete
-					itemName={data[currentDataset]?.ranges[editRange]?.title}
+					itemName={data[currentDataset]?.ranges?.[editRange]?.title}
 					itemType="the range"
 					onConfirm={() => {
 						remove(
