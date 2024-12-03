@@ -23,19 +23,10 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 
 	if (categoryEventIDs.length === 0 && categoryRangeIDs.length === 0) return [{}, {}, 0];
 
-	// Draw title
-	if (category > -1) {
-		context.beginPath();
-		context.textAlign = "left";
-		context.textBaseline = "top";
-		context.font = `bold 24px Gabarito, sans-serif`;
-		context.fillStyle = "white";
-		if (accentHue > -1) context.fillStyle = `hsl(${accentHue}deg 80% 80%)`;
-		context.fillText(data.datasets[currentDataset].categories[category].name, 15, currentStartY);
-		currentStartY += 35;
-	}
+	// Add some top padding
+	if (category > -1) currentStartY += 13
 
-	// Draw events
+	// #region Draw Events
 	let eventsDepth = 0;
 	let eventsDisplayed = {};
 	const drawEvent = (timestamp, event_id, y = 0) => {
@@ -68,8 +59,9 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 		}
 	});
 	if (eventsDepth > 0) currentStartY += eventsDepth + 20;
+	// #endregion
 
-	// Draw ranges
+	// #region Draw Ranges
 	let rangeLayers = {};
 	let rangesDisplayed = {};
 	const drawRange = (fromTimestamp, fromUncertainty, toTimestamp, toUncertainty, range_id) => {
@@ -182,10 +174,45 @@ function renderTimelineSection(context, data, currentDataset, category, start, s
 			range_id
 		);
 	});
+	// #endregion
+
+	// Draw title
+	if (category > -1) {
+		// Calculate constants
+		const name = data.datasets[currentDataset].categories[category].name
+		const color = accentHue > -1 ? `hsl(${accentHue}deg 80% 80%)` : 'white'
+		context.textAlign = "left";
+		context.textBaseline = "top";
+		context.font = `bold 24px Gabarito, sans-serif`;
+		const textWidth = context.measureText(name).width
+
+		// Draw gradient line
+		const linearGradient = context.createLinearGradient(0, startY, textWidth + 150, startY);
+		linearGradient.addColorStop(0, color);
+		linearGradient.addColorStop(1, 'transparent');
+		context.strokeStyle = linearGradient
+		context.beginPath();
+		context.moveTo(0, startY);
+		context.lineTo(textWidth + 150, startY);
+		context.stroke();
+
+		// Draw gradient background
+		const radialGradient = context.createRadialGradient(0, startY, 15, 0, startY, textWidth + 100);
+		radialGradient.addColorStop(0, "hsl(220, 5%, 12%, 100%)");
+		radialGradient.addColorStop(1, "hsl(220, 5%, 12%, 0%)");
+		context.fillStyle = radialGradient;
+		context.fillRect(0, startY, textWidth + 100, textWidth + 100);
+
+		// Draw text
+		context.beginPath();
+		context.fillStyle = color;
+		context.fillText(name, 15, startY + 5);
+	}
 
 	return [rangesDisplayed, eventsDisplayed, currentStartY - startY + Object.keys(rangeLayers).length * 15 - 5];
 }
 
+// #region Render Timeline
 function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange, width, timestampToGraph) {
 	console.log("Rendering...");
 	const context = canvas.getContext("2d");
@@ -201,7 +228,7 @@ function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange,
 	// Render sections
 	let rangesDisplayed = {};
 	let eventsDisplayed = {};
-	let currentStartY = 100 - scrollY;
+	let currentStartY = 90 - scrollY;
 	[-1].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).forEach((category_id) => {
 		const [sectionRangesDisplayed, sectionEventsDisplayed, sectionHeight] = renderTimelineSection(
 			context,
@@ -215,9 +242,10 @@ function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange,
 
 		rangesDisplayed = { ...rangesDisplayed, ...sectionRangesDisplayed };
 		eventsDisplayed = { ...eventsDisplayed, ...sectionEventsDisplayed };
-		currentStartY += sectionHeight + 50;
+		currentStartY += sectionHeight + 30;
 	});
 
+	// #region Tick Marks
 	// Draw tick background
 	context.beginPath();
 	context.fillStyle = "hsl(220deg 5% 15%)";
@@ -326,6 +354,7 @@ function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange,
 			}
 		}
 	}
+	// #endregion
 	
 	// Draw "now" (today) line
 	const nowX = timestampToGraph(Date.now());
@@ -341,10 +370,12 @@ function renderTimeline(data, currentDataset, canvas, start, scrollY, viewRange,
 	return {
 		events: eventsDisplayed,
 		ranges: rangesDisplayed,
-		scrollHeight: currentStartY * 2, // This needs fixed, kinda glitchy
+		scrollHeight: currentStartY * 2 + 100,
+		// scrollHeight: currentStartY * 2, // This needs fixed, kinda glitchy
 		// scrollHeight: (eventsDepth + Object.keys(rangeLayers).length * 25) * 2 + 20,
 	};
 }
+// #endregion
 
 function TimelineView({ data, currentDataset }) {
 	const dataset = data[currentDataset];
