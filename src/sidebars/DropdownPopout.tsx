@@ -25,7 +25,7 @@ function DropdownPopout({
     bottom?: number
   }
   onExit: () => void
-  selectDropdownRef: RefObject<HTMLDivElement>
+  selectDropdownRef: RefObject<HTMLDivElement | null>
   items: { id: string; name: string }[]
   itemType: string
   selected: string
