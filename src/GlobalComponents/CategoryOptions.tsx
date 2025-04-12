@@ -5,18 +5,27 @@ import { ref, set } from 'firebase/database'
 
 // Local Components
 import SelectAccentHue from './SelectAccentHue'
+import { UserData } from '../types'
 
-function CategoryOptions({ data, dataset, categoryID }) {
-  const category = data.datasets[dataset]?.categories?.[categoryID]
+export default function CategoryOptions({
+  data,
+  dataset,
+  categoryID,
+}: {
+  data: UserData
+  dataset: string
+  categoryID: string | null
+}) {
+  const category = categoryID ? data.datasets[dataset]?.categories?.[categoryID] : null
 
   const prevCategoryID = useRef(categoryID)
-  const [nameInput, setNameInput] = useState(category?.name ?? '')
-  const [accentHue, setAccentHue] = useState(category?.accentHue ?? -1)
+  const [nameInput, setNameInput] = useState<string>(category?.name ?? '')
+  const [accentHue, setAccentHue] = useState<number>(Number(category?.accentHue ?? -1))
 
   useEffect(() => {
     if (prevCategoryID.current !== categoryID) {
       setNameInput(category?.name ?? '')
-      setAccentHue(category?.accentHue ?? -1)
+      setAccentHue(Number(category?.accentHue ?? -1))
     }
     prevCategoryID.current = categoryID
   }, [categoryID, category?.name, category?.accentHue])
@@ -31,12 +40,17 @@ function CategoryOptions({ data, dataset, categoryID }) {
           <div
             className='optionsModalSaveChanges'
             style={{
+              // @ts-expect-error
               '--accent-hue': `${accentHue > -1 ? accentHue : 220}deg`,
             }}
             onClick={() => {
-              const categoryURL = `timeline/users/${auth.currentUser.uid}/datasets/${dataset}/categories/${categoryID}/`
-              if (category.name !== nameInput) set(ref(db, categoryURL + 'name'), nameInput)
-              if (+category.accentHue !== +accentHue) set(ref(db, categoryURL + 'accentHue'), accentHue)
+              const categoryURL = `timeline/users/${auth.currentUser?.uid}/datasets/${dataset}/categories/${categoryID}/`
+              if (category.name !== nameInput) {
+                set(ref(db, categoryURL + 'name'), nameInput)
+              }
+              if (!category.accentHue || +category.accentHue !== +accentHue) {
+                set(ref(db, categoryURL + 'accentHue'), accentHue)
+              }
             }}>
             <h1 style={{ fontSize: 16 }}>Save Changes</h1>
           </div>
@@ -54,7 +68,7 @@ function CategoryOptions({ data, dataset, categoryID }) {
       <SelectAccentHue
         data={data}
         dataset={dataset}
-        category={category}
+        category={categoryID}
         enabled={true}
         accentHue={accentHue}
         setAccentHue={setAccentHue}
@@ -62,5 +76,3 @@ function CategoryOptions({ data, dataset, categoryID }) {
     </div>
   )
 }
-
-export default CategoryOptions

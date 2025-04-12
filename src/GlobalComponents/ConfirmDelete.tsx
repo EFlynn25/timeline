@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import './ConfirmDelete.css'
 
-function ConfirmDelete({ itemName, itemType, onConfirm }) {
+export default function ConfirmDelete({
+  itemName,
+  itemType,
+  onConfirm,
+}: {
+  itemName: string
+  itemType: string
+  onConfirm: () => void
+}) {
   const [currentName, setCurrentName] = useState(itemName)
 
   useEffect(() => {
@@ -20,5 +28,3 @@ function ConfirmDelete({ itemName, itemType, onConfirm }) {
     </div>
   )
 }
-
-export default ConfirmDelete

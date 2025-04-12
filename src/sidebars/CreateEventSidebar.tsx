@@ -301,9 +301,9 @@ function CreateEventSidebar({
         onCreate={(name) => createCategory(data, currentDataset, name)}
         itemOptions={[{ iconName: 'delete', onClick: (category_id) => setVerifyDeleteCategory(category_id) }]}
       />
-      <Modal show={verifyDeleteCategory} onExit={() => setVerifyDeleteCategory(null)}>
+      <Modal show={!!verifyDeleteCategory} onExit={() => setVerifyDeleteCategory(null)}>
         <ConfirmDelete
-          itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory ?? '']?.name}
+          itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory ?? '']?.name ?? ''}
           itemType='the category'
           onConfirm={() => {
             if (auth.currentUser) {
@@ -325,7 +325,7 @@ function CreateEventSidebar({
       </Modal>
       <Modal show={verifyDeleteEvent} onExit={() => setVerifyDeleteEvent(false)}>
         <ConfirmDelete
-          itemName={data[currentDataset]?.events?.[editEvent ?? '']?.title}
+          itemName={data[currentDataset]?.events?.[editEvent ?? '']?.title ?? ''}
           itemType='the event'
           onConfirm={() => {
             if (auth.currentUser) {
@@ -336,7 +336,7 @@ function CreateEventSidebar({
           }}
         />
       </Modal>
-      <Modal show={showCategoryOptions} onExit={() => setShowCategoryOptions(null)}>
+      <Modal show={!!showCategoryOptions} onExit={() => setShowCategoryOptions(null)}>
         <CategoryOptions data={data} dataset={currentDataset} categoryID={showCategoryOptions} />
       </Modal>
     </>

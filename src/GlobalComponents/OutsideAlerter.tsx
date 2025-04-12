@@ -2,9 +2,13 @@
 // prop, I did that). I know how to do it but this is a
 // dope approach and I was too lazy.
 
-import { useRef, useEffect } from 'react'
+import { PropsWithChildren, RefObject, useEffect, useRef } from 'react'
 
-function useOutsideAlerter(ignoreRefs, ignoreClasses, callback) {
+function useOutsideAlerter(
+  ignoreRefs: RefObject<HTMLDivElement | null>[],
+  ignoreClasses: string[],
+  callback: () => void
+) {
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -23,8 +27,19 @@ function useOutsideAlerter(ignoreRefs, ignoreClasses, callback) {
   }, [ignoreRefs, ignoreClasses, callback])
 }
 
-export default function OutsideAlerter({ children, callback, style, ignoreRefs, ignoreClasses }) {
-  const wrapperRef = useRef(null)
+export default function OutsideAlerter({
+  children,
+  callback,
+  style,
+  ignoreRefs,
+  ignoreClasses,
+}: PropsWithChildren<{
+  callback: () => void
+  style?: React.CSSProperties
+  ignoreRefs: RefObject<HTMLDivElement | null>[]
+  ignoreClasses: string[]
+}>) {
+  const wrapperRef = useRef<HTMLDivElement>(null)
   useOutsideAlerter([wrapperRef].concat(ignoreRefs ?? []), ignoreClasses ?? [], callback)
 
   return (

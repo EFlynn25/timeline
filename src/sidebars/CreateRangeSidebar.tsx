@@ -585,7 +585,7 @@ function CreateRangeSidebar({
         onCreate={(name) => createCategory(data, currentDataset, name)}
         itemOptions={[{ iconName: 'delete', onClick: (category_id) => setVerifyDeleteCategory(category_id) }]}
       />
-      <Modal show={verifyDeleteCategory} onExit={() => setVerifyDeleteCategory(null)}>
+      <Modal show={!!verifyDeleteCategory} onExit={() => setVerifyDeleteCategory(null)}>
         <ConfirmDelete
           itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory ?? '']?.name}
           itemType='the category'
@@ -609,7 +609,7 @@ function CreateRangeSidebar({
       </Modal>
       <Modal show={verifyDeleteRange} onExit={() => setVerifyDeleteRange(false)}>
         <ConfirmDelete
-          itemName={data[currentDataset]?.ranges?.[editRange ?? '']?.title}
+          itemName={data[currentDataset]?.ranges?.[editRange ?? '']?.title ?? ''}
           itemType='the range'
           onConfirm={() => {
             if (auth.currentUser) {
@@ -620,7 +620,7 @@ function CreateRangeSidebar({
           }}
         />
       </Modal>
-      <Modal show={showCategoryOptions} onExit={() => setShowCategoryOptions(null)}>
+      <Modal show={!!showCategoryOptions} onExit={() => setShowCategoryOptions(null)}>
         <CategoryOptions data={data} dataset={currentDataset} categoryID={showCategoryOptions} />
       </Modal>
     </>

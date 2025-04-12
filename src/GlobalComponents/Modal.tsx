@@ -1,7 +1,13 @@
-import { useRef } from 'react'
+import { PropsWithChildren, useRef } from 'react'
 import './Modal.css'
 
-function Modal({ children, show, onExit, width = 400, height = 250 }) {
+export default function Modal({
+  children,
+  show,
+  onExit,
+  width = 400,
+  height = 250,
+}: PropsWithChildren<{ show: boolean; onExit: () => void; width?: number; height?: number }>) {
   const mouseDown = useRef(false)
 
   return (
@@ -27,5 +33,3 @@ function Modal({ children, show, onExit, width = 400, height = 250 }) {
     </div>
   )
 }
-
-export default Modal

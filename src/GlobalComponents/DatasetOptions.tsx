@@ -4,7 +4,7 @@ import { db, auth } from '../App'
 import { ref, set } from 'firebase/database'
 import { UserData } from '../types'
 
-function DatasetOptions({ data, dataset }: { data: UserData | undefined; dataset: any }) {
+function DatasetOptions({ data, dataset }: { data: UserData | undefined; dataset: string }) {
   const datasetObj = data?.datasets?.[dataset]
 
   const prevDataset = useRef(dataset)

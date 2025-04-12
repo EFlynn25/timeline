@@ -168,9 +168,9 @@ function App() {
           onCreate={(name) => data && createDataset(data, name)}
           itemOptions={[{ iconName: 'delete', onClick: (dataset_id) => setVerifyDeleteDataset(dataset_id) }]}
         />
-        <Modal show={verifyDeleteDataset} onExit={() => setVerifyDeleteDataset(null)}>
+        <Modal show={!!verifyDeleteDataset} onExit={() => setVerifyDeleteDataset(null)}>
           <ConfirmDelete
-            itemName={data?.datasets?.[verifyDeleteDataset ?? '']?.name}
+            itemName={data?.datasets?.[verifyDeleteDataset ?? '']?.name ?? ''}
             itemType='all the data in the dataset'
             onConfirm={() => {
               if (!auth.currentUser) throw new Error('No current user while deleting dataset!')
@@ -180,7 +180,7 @@ function App() {
             }}
           />
         </Modal>
-        <Modal show={showDatasetOptions} onExit={() => setShowDatasetOptions(null)}>
+        <Modal show={!!showDatasetOptions} onExit={() => setShowDatasetOptions(null)}>
           <DatasetOptions data={data} dataset={currentDataset} />
         </Modal>
         {signedIn && data && (
