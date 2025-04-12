@@ -1,13 +1,13 @@
 // TODO... Sorting and filtering for event and range views
 //             (date sorting, searching)
 
-import { useState, useEffect, useRef } from 'react'
-import './App.css'
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth'
-import { getDatabase, onValue, ref, set, remove } from 'firebase/database'
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup } from 'firebase/auth'
+import { getDatabase, onValue, ref, remove, set, Unsubscribe } from 'firebase/database'
+import { useEffect, useRef, useState } from 'react'
 import GoogleButton from 'react-google-button'
-import { useWindowSize, createDataset } from './functions'
+import './App.css'
+import { createDataset, useWindowSize } from './functions'
 
 // Global Components
 import ConfirmDelete from './GlobalComponents/ConfirmDelete'
@@ -19,10 +19,11 @@ import RangeView from './views/RangeView'
 import TimelineView from './views/TimelineView'
 
 // Sidebar Imports
+import DatasetOptions from './GlobalComponents/DatasetOptions'
 import CreateEventSidebar from './sidebars/CreateEventSidebar'
 import CreateRangeSidebar from './sidebars/CreateRangeSidebar'
 import DropdownPopout from './sidebars/DropdownPopout'
-import DatasetOptions from './GlobalComponents/DatasetOptions'
+import { UserData } from './types'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyB4gp1SLXhtv8jzzzdUms6FPDRjLMR1FSI',
@@ -50,31 +51,30 @@ function signIn() {
 
 function App() {
   // Firebase States
-  const [signedIn, setSignedIn] = useState(null)
-  const [dataRetrieved, setDataRetrieved] = useState(false)
+  const [signedIn, setSignedIn] = useState<boolean | null>(null)
 
   // App States
-  const [currentDataset, setCurrentDataset] = useState(null)
+  const [currentDataset, setCurrentDataset] = useState<string>('')
   const prevDataset = useRef(currentDataset)
   const [currentView, setCurrentView] = useState('events')
   const prevView = useRef(currentView)
-  const [data, setData] = useState({})
+  const [data, setData] = useState<UserData | undefined>(undefined)
   const [width] = useWindowSize()
 
   // Select Dataset States
-  const datasetSelectRef = useRef()
+  const datasetSelectRef = useRef<HTMLDivElement>(null)
   const [headerSelectDatasetOpened, setHeaderSelectDatasetOpened] = useState(false)
-  const [verifyDeleteDataset, setVerifyDeleteDataset] = useState(-1)
-  const [showDatasetOptions, setShowDatasetOptions] = useState(-1)
+  const [verifyDeleteDataset, setVerifyDeleteDataset] = useState<string | null>(null)
+  const [showDatasetOptions, setShowDatasetOptions] = useState<string | null>(null)
 
   // Edit States
-  const [editEvent, setEditEvent] = useState(-1)
-  const [editRange, setEditRange] = useState(-1)
+  const [editEvent, setEditEvent] = useState<string | null>(null)
+  const [editRange, setEditRange] = useState<string | null>(null)
 
   // Effects
   // Retrieve auth and database data
   useEffect(() => {
-    let dbUnsubcribe
+    let dbUnsubcribe: Unsubscribe
     const authUnsubscribe = onAuthStateChanged(auth, (user) => {
       console.log('Signed in:', !!user)
       setSignedIn(!!user)
@@ -82,23 +82,22 @@ function App() {
         const userDataRef = ref(db, 'timeline/users/' + user.uid)
 
         dbUnsubcribe = onValue(userDataRef, (snapshot) => {
-          const data = snapshot.val()
+          const data = snapshot.val() as UserData
           console.log('User data:', data)
 
           if (data) {
             setData(data)
             setCurrentDataset((currentDataset) =>
-              currentDataset && Object.keys(data.datasets ?? {}).includes(currentDataset)
+              currentDataset && Object.keys(data.datasets ?? {}).includes(currentDataset.toString())
                 ? currentDataset
                 : Object.keys(data.datasets ?? {})[0] ?? -1
             )
           } else {
-            setData({})
+            setData(undefined)
           }
           if (!data || !data.datasets) {
             set(ref(db, 'timeline/users/' + user.uid + '/datasets'), { 1000: { name: 'main' } })
           }
-          setDataRetrieved(true)
         })
       }
     })
@@ -110,8 +109,8 @@ function App() {
 
   useEffect(() => {
     if (prevDataset.current !== currentDataset || prevView.current !== currentView) {
-      setEditEvent(-1)
-      setEditRange(-1)
+      setEditEvent(null)
+      setEditRange(null)
     }
     prevDataset.current = currentDataset
     prevView.current = currentView
@@ -133,17 +132,17 @@ function App() {
     )
 
   return (
-    <div className={'App' + (!signedIn || !dataRetrieved || currentView === 'timeline' ? ' AppHideSidebar' : '')}>
+    <div className={'App' + (!signedIn || !data || currentView === 'timeline' ? ' AppHideSidebar' : '')}>
       <header>
         <h1 title='v0.1'>Flynn's Timeline</h1>
-        {signedIn && dataRetrieved && (
+        {signedIn && data && (
           <>
             <div
               className={`dropdownSelect ${headerSelectDatasetOpened ? 'dropdownSelectOpened' : ''}`}
               style={{ maxWidth: 160, marginLeft: 10 }}
               ref={datasetSelectRef}
               onClick={() => setHeaderSelectDatasetOpened(!headerSelectDatasetOpened)}>
-              <h1>{data.datasets?.[currentDataset]?.name}</h1>
+              <h1>{data?.datasets?.[currentDataset]?.name}</h1>
               <span className='material-symbols-outlined'>expand_more</span>
             </div>
             <span
@@ -159,31 +158,32 @@ function App() {
           position={{ top: 45, left: 195 }}
           onExit={() => setHeaderSelectDatasetOpened(false)}
           selectDropdownRef={datasetSelectRef}
-          items={Object.keys(data.datasets ?? {}).map((dataset_id) => ({
-            id: dataset_id,
-            name: data.datasets[dataset_id]?.name,
+          items={Object.keys(data?.datasets ?? {}).map((datasetId) => ({
+            id: datasetId,
+            name: data?.datasets[datasetId]?.name ?? datasetId,
           }))}
           itemType='dataset'
           selected={currentDataset}
           onSelect={(dataset_id) => setCurrentDataset(dataset_id)}
-          onCreate={(name) => createDataset(data, name)}
+          onCreate={(name) => data && createDataset(data, name)}
           itemOptions={[{ iconName: 'delete', onClick: (dataset_id) => setVerifyDeleteDataset(dataset_id) }]}
         />
-        <Modal show={verifyDeleteDataset > -1} onExit={() => setVerifyDeleteDataset(-1)}>
+        <Modal show={verifyDeleteDataset} onExit={() => setVerifyDeleteDataset(null)}>
           <ConfirmDelete
-            itemName={data.datasets?.[verifyDeleteDataset]?.name}
+            itemName={data?.datasets?.[verifyDeleteDataset ?? '']?.name}
             itemType='all the data in the dataset'
             onConfirm={() => {
+              if (!auth.currentUser) throw new Error('No current user while deleting dataset!')
               remove(ref(db, 'timeline/users/' + auth.currentUser.uid + '/' + verifyDeleteDataset))
               remove(ref(db, 'timeline/users/' + auth.currentUser.uid + '/datasets/' + verifyDeleteDataset))
-              setVerifyDeleteDataset(-1)
+              setVerifyDeleteDataset(null)
             }}
           />
         </Modal>
-        <Modal show={showDatasetOptions > -1} onExit={() => setShowDatasetOptions(-1)}>
+        <Modal show={showDatasetOptions} onExit={() => setShowDatasetOptions(null)}>
           <DatasetOptions data={data} dataset={currentDataset} />
         </Modal>
-        {signedIn && dataRetrieved && (
+        {signedIn && data && (
           <div className='headerActions'>
             <div
               className={`headerTab ${currentView === 'events' ? 'headerTabSelected' : ''}`}
@@ -206,15 +206,19 @@ function App() {
           </div>
         )}
       </header>
-      {signedIn === true && dataRetrieved ? (
+      {signedIn === true && data ? (
         <>
           {currentView === 'events' ? (
-            <EventView events={data[currentDataset]?.events ?? {}} editEvent={editEvent} setEditEvent={setEditEvent} />
+            <EventView
+              events={data?.[currentDataset]?.events ?? {}}
+              editEvent={editEvent}
+              setEditEvent={setEditEvent}
+            />
           ) : currentView === 'ranges' ? (
             <RangeView
               data={data}
               currentDataset={currentDataset}
-              ranges={data[currentDataset]?.ranges ?? {}}
+              ranges={data?.[currentDataset]?.ranges ?? {}}
               editRange={editRange}
               setEditRange={setEditRange}
             />
@@ -235,14 +239,14 @@ function App() {
                   data={data}
                   currentDataset={currentDataset}
                   editEvent={editEvent}
-                  onCancelEdit={() => setEditEvent(-1)}
+                  onCancelEdit={() => setEditEvent(null)}
                 />
               ) : currentView === 'ranges' ? (
                 <CreateRangeSidebar
                   data={data}
                   currentDataset={currentDataset}
                   editRange={editRange}
-                  onCancelEdit={() => setEditRange(-1)}
+                  onCancelEdit={() => setEditRange(null)}
                 />
               ) : null}
             </div>

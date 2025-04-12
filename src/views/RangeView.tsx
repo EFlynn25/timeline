@@ -1,8 +1,21 @@
 import './RangeView.css'
 import { parseRangeDate, parseRangeTitle, parseRangesToCategories, sortRangesAsIDs } from '../functions'
 import { useState } from 'react'
+import { UserData } from '../types'
 
-function RangeView({ data, currentDataset, ranges, editRange, setEditRange }) {
+function RangeView({
+  data,
+  currentDataset,
+  ranges,
+  editRange,
+  setEditRange,
+}: {
+  data: UserData
+  currentDataset: string
+  ranges: any
+  editRange: string | null
+  setEditRange: any
+}) {
   const [splitIntoCategories, setSplitIntoCategories] = useState(true)
   let parsedRangesInCategories = parseRangesToCategories(ranges)
 
@@ -43,16 +56,16 @@ function RangeView({ data, currentDataset, ranges, editRange, setEditRange }) {
       </div>
 
       {splitIntoCategories
-        ? [-1].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).map((category_id) => {
-            if (!Object.keys(parsedRangesInCategories).includes(category_id.toString())) return null
+        ? ['-1'].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).map((categoryId) => {
+            if (!Object.keys(parsedRangesInCategories).includes(categoryId.toString())) return null
 
             return (
-              <div key={category_id}>
-                {category_id > -1 && (
-                  <h2 style={{ marginTop: 10 }}>{data.datasets[currentDataset].categories[category_id].name}</h2>
+              <div key={categoryId}>
+                {categoryId !== '-1' && (
+                  <h2 style={{ marginTop: 10 }}>{data.datasets[currentDataset].categories[categoryId].name}</h2>
                 )}
                 {sortRangesAsIDs(
-                  parsedRangesInCategories[category_id].reduce((acc, cur) => ({ ...acc, [cur]: ranges[cur] }), {})
+                  parsedRangesInCategories[categoryId].reduce((acc, cur) => ({ ...acc, [cur]: ranges[cur] }), {})
                 ).map((range_id) => createRangeEntry(range_id))}
               </div>
             )

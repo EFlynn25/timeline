@@ -1,6 +1,7 @@
 import { useState, useLayoutEffect } from 'react'
 import { auth, db } from './App'
 import { ref, set } from 'firebase/database'
+import { UserData } from './types'
 
 /* Constants */
 
@@ -50,11 +51,9 @@ export function numericTime(time) {
 export function inputToStorageDate(inputDate) {
   return `${inputDate.slice(5, 7)}/${inputDate.slice(8)}/${inputDate.slice(0, 4)}`
 }
-export function inputToStorageTime(inputTime) {
+export function inputToStorageTime(inputTime: string) {
   const timeComponents = inputTime.split(':')
-  const hour12 = parseInt(timeComponents[0] % 12)
-    .toString()
-    .padStart(2, '0')
+  const hour12 = (Number(timeComponents[0]) % 12).toString().padStart(2, '0')
   const ampm = +timeComponents[0] - 12 < 0 ? 'am' : 'pm'
   return `${hour12 === '00' ? '12' : hour12}:${timeComponents[1]}:${timeComponents[2]}${ampm}`
 }
@@ -170,7 +169,7 @@ export function parseEventsToMonths(events) {
     }, {})
   return parsedEvents
 }
-export function parseEventsToCategories(data, currentDataset, events) {
+export function parseEventsToCategories(data: UserData, currentDataset, events) {
   if (!events) return {}
 
   const sortedEventIDs = sortEventsAsIDs(events)
@@ -211,8 +210,9 @@ export function createNewID(places, currentIDs) {
   return my_id
 }
 
-export const createDataset = (data, datasetName) => {
+export const createDataset = (data: UserData, datasetName) => {
   if (
+    auth.currentUser &&
     /^[A-Za-z]+$/.test(datasetName) &&
     Object.values(data.datasets).every((dataset) => dataset.name !== datasetName)
   ) {
@@ -221,8 +221,9 @@ export const createDataset = (data, datasetName) => {
   }
 }
 
-export const createCategory = (data, currentDataset, categoryName) => {
+export const createCategory = (data: UserData, currentDataset, categoryName) => {
   if (
+    auth.currentUser &&
     /^[A-Za-z]+$/.test(categoryName) &&
     Object.values(data.datasets[currentDataset].categories ?? {}).every((category) => category.name !== categoryName)
   ) {
@@ -239,8 +240,8 @@ export const createCategory = (data, currentDataset, categoryName) => {
 
 /* Hooks */
 
-export function useWindowSize() {
-  const [size, setSize] = useState([0, 0])
+export function useWindowSize(): [number, number] {
+  const [size, setSize] = useState<[number, number]>([0, 0])
   useLayoutEffect(() => {
     function updateSize() {
       setSize([window.innerWidth, window.innerHeight])

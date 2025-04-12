@@ -2,9 +2,10 @@ import { useEffect, useState, useRef } from 'react'
 import './OptionsModal.css'
 import { db, auth } from '../App'
 import { ref, set } from 'firebase/database'
+import { UserData } from '../types'
 
-function DatasetOptions({ data, dataset }) {
-  const datasetObj = data.datasets?.[dataset]
+function DatasetOptions({ data, dataset }: { data: UserData | undefined; dataset: any }) {
+  const datasetObj = data?.datasets?.[dataset]
 
   const prevDataset = useRef(dataset)
   const [nameInput, setNameInput] = useState(datasetObj?.name ?? '')
@@ -26,11 +27,14 @@ function DatasetOptions({ data, dataset }) {
           <div
             className='optionsModalSaveChanges'
             style={{
+              // @ts-expect-error
               '--accent-hue': '220deg',
             }}
             onClick={() => {
-              const datasetURL = `timeline/users/${auth.currentUser.uid}/datasets/${dataset}/`
-              if (datasetObj.name !== nameInput) set(ref(db, datasetURL + 'name'), nameInput)
+              if (auth.currentUser) {
+                const datasetURL = `timeline/users/${auth.currentUser.uid}/datasets/${dataset}/`
+                if (datasetObj.name !== nameInput) set(ref(db, datasetURL + 'name'), nameInput)
+              }
             }}>
             <h1 style={{ fontSize: 16 }}>Save Changes</h1>
           </div>

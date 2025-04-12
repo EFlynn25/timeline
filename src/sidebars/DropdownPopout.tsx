@@ -1,3 +1,4 @@
+import { ChangeEvent, RefObject } from 'react'
 import OutsideAlerter from '../GlobalComponents/OutsideAlerter'
 
 // items - [{ id: number, name: string }]
@@ -15,6 +16,22 @@ function DropdownPopout({
   onSelect,
   onCreate,
   itemOptions,
+}: {
+  show: boolean
+  position: {
+    top?: number
+    left?: number
+    right?: number
+    bottom?: number
+  }
+  onExit: () => void
+  selectDropdownRef: RefObject<HTMLDivElement>
+  items: { id: string; name: string }[]
+  itemType: string
+  selected: string
+  onSelect: (id: string) => void
+  onCreate: (name: string) => void
+  itemOptions: { iconName: string; onClick: (id: string) => void }[]
 }) {
   return (
     <OutsideAlerter callback={onExit} ignoreRefs={[selectDropdownRef]} ignoreClasses={['modal']}>
@@ -36,8 +53,8 @@ function DropdownPopout({
                     onSelect(item.id)
                     onExit()
                   }}>
-                  <h1 style={{ fontWeight: item.id === -1 ? 'normal' : '' }}>{item.name}</h1>
-                  {item.id > -1 &&
+                  <h1 style={{ fontWeight: item.id === '-1' ? 'normal' : '' }}>{item.name}</h1>
+                  {item.id !== '-1' &&
                     itemOptions.map((itemOption) => (
                       <span
                         key={itemOption.iconName}
@@ -54,9 +71,9 @@ function DropdownPopout({
           )}
           <form
             id='createEntry'
-            onSubmit={(e) => {
+            onSubmit={(e: ChangeEvent<HTMLFormElement>) => {
               e.preventDefault()
-              onCreate(Object.fromEntries(new FormData(e.target).entries()).entryName)
+              onCreate(Object.fromEntries(new FormData(e.target).entries()).entryName as string)
               e.target.reset()
             }}>
             <input
@@ -72,7 +89,7 @@ function DropdownPopout({
             <span
               className='material-symbols-outlined'
               onClick={() => {
-                onCreate(Object.fromEntries(new FormData(document.forms['createEntry']).entries()).entryName)
+                onCreate(Object.fromEntries(new FormData(document.forms['createEntry']).entries()).entryName as string)
                 document.forms['createEntry'].reset()
               }}>
               done

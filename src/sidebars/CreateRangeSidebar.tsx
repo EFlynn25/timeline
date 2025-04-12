@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { ref, set, remove } from 'firebase/database'
 import { auth, db } from '../App'
 import {
@@ -18,11 +18,47 @@ import CategoryOptions from '../GlobalComponents/CategoryOptions'
 import ConfirmDelete from '../GlobalComponents/ConfirmDelete'
 import Modal from '../GlobalComponents/Modal'
 import SelectAccentHue from '../GlobalComponents/SelectAccentHue'
+import { Range, UserData } from '../types'
 
-function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
+type CreateRangeStorage = {
+  title: string
+  uncertainFrom: boolean
+  includeTimeFrom: boolean
+  fromRelativeStart: string
+  fromRelativeEnd: string
+  fromDateStart: string
+  fromDateEnd: string
+  fromTimeStart: string
+  fromTimeEnd: string
+  TBD: boolean
+  uncertainTo: boolean
+  includeTimeTo: boolean
+  toRelativeStart: string
+  toRelativeEnd: string
+  toDateStart: string
+  toDateEnd: string
+  toTimeStart: string
+  toTimeEnd: string
+  notes: string
+  category: string | null
+  enableAccentHue: boolean
+  accentHue: number
+}
+
+function CreateRangeSidebar({
+  data,
+  currentDataset,
+  editRange,
+  onCancelEdit,
+}: {
+  data: UserData
+  currentDataset: string
+  editRange: string | null
+  onCancelEdit: () => void
+}) {
   const prevEditRange = useRef(editRange)
   const [validationError, setValidationError] = useState('')
-  const createRangeStorage = useRef({})
+  const createRangeStorage = useRef<Partial<CreateRangeStorage>>({})
   const [verifyDeleteRange, setVerifyDeleteRange] = useState(false)
 
   // Input States
@@ -52,11 +88,11 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
   const [notes, setNotes] = useState('')
 
   // Category States
-  const [category, setCategory] = useState(-1)
-  const categorySelectRef = useRef()
+  const [category, setCategory] = useState<string | null>(null)
+  const categorySelectRef = useRef<HTMLDivElement>(null)
   const [showCategoryPicker, setShowCategoryPicker] = useState(false)
-  const [verifyDeleteCategory, setVerifyDeleteCategory] = useState(-1)
-  const [showCategoryOptions, setShowCategoryOptions] = useState(-1)
+  const [verifyDeleteCategory, setVerifyDeleteCategory] = useState<string | null>(null)
+  const [showCategoryOptions, setShowCategoryOptions] = useState<string | null>(null)
 
   // Accent Hue States
   const [enableAccentHue, setEnableAccentHue] = useState(false)
@@ -64,28 +100,28 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
 
   // Functions
   const restoreCreateRange = () => {
-    setTitle(createRangeStorage.current.title)
-    setUncertainFrom(createRangeStorage.current.uncertainFrom)
-    setIncludeTimeFrom(createRangeStorage.current.includeTimeFrom)
-    setFromRelativeStart(createRangeStorage.current.fromRelativeStart)
-    setFromRelativeEnd(createRangeStorage.current.fromRelativeEnd)
-    setFromDateStart(createRangeStorage.current.fromDateStart)
-    setFromDateEnd(createRangeStorage.current.fromDateEnd)
-    setFromTimeStart(createRangeStorage.current.fromTimeStart)
-    setFromTimeEnd(createRangeStorage.current.fromTimeEnd)
-    setTBD(createRangeStorage.current.TBD)
-    setUncertainTo(createRangeStorage.current.uncertainTo)
-    setIncludeTimeTo(createRangeStorage.current.includeTimeTo)
-    setToRelativeStart(createRangeStorage.current.toRelativeStart)
-    setToRelativeEnd(createRangeStorage.current.toRelativeEnd)
-    setToDateStart(createRangeStorage.current.toDateStart)
-    setToDateEnd(createRangeStorage.current.toDateEnd)
-    setToTimeStart(createRangeStorage.current.toTimeStart)
-    setToTimeEnd(createRangeStorage.current.toTimeEnd)
-    setNotes(createRangeStorage.current.notes)
-    setCategory(createRangeStorage.current.category)
-    setEnableAccentHue(createRangeStorage.current.enableAccentHue)
-    setAccentHue(createRangeStorage.current.accentHue)
+    setTitle(createRangeStorage.current.title ?? '')
+    setUncertainFrom(createRangeStorage.current.uncertainFrom ?? false)
+    setIncludeTimeFrom(createRangeStorage.current.includeTimeFrom ?? false)
+    setFromRelativeStart(createRangeStorage.current.fromRelativeStart ?? '=')
+    setFromRelativeEnd(createRangeStorage.current.fromRelativeEnd ?? '=')
+    setFromDateStart(createRangeStorage.current.fromDateStart ?? '')
+    setFromDateEnd(createRangeStorage.current.fromDateEnd ?? '')
+    setFromTimeStart(createRangeStorage.current.fromTimeStart ?? '')
+    setFromTimeEnd(createRangeStorage.current.fromTimeEnd ?? '')
+    setTBD(createRangeStorage.current.TBD ?? false)
+    setUncertainTo(createRangeStorage.current.uncertainTo ?? false)
+    setIncludeTimeTo(createRangeStorage.current.includeTimeTo ?? false)
+    setToRelativeStart(createRangeStorage.current.toRelativeStart ?? '=')
+    setToRelativeEnd(createRangeStorage.current.toRelativeEnd ?? '=')
+    setToDateStart(createRangeStorage.current.toDateStart ?? '')
+    setToDateEnd(createRangeStorage.current.toDateEnd ?? '')
+    setToTimeStart(createRangeStorage.current.toTimeStart ?? '')
+    setToTimeEnd(createRangeStorage.current.toTimeEnd ?? '')
+    setNotes(createRangeStorage.current.notes ?? '')
+    setCategory(createRangeStorage.current.category ?? null)
+    setEnableAccentHue(createRangeStorage.current.enableAccentHue ?? false)
+    setAccentHue(createRangeStorage.current.accentHue ?? -1)
   }
 
   const formSubmit = (e) => {
@@ -109,11 +145,13 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
 
     // Add range to dataset
     // const my_id = createNewID(8, Object.keys(data[currentDataset]?.ranges ?? {}));
-    const my_id = editRange > -1 ? editRange : createNewID(8, Object.keys(data[currentDataset]?.ranges ?? {}))
-    let newRange = {
+    const my_id = editRange ?? createNewID(8, Object.keys(data[currentDataset]?.ranges ?? {}))
+    let newRange: Range = {
       title: title,
       notes: notes,
-      accentHue: enableAccentHue ? accentHue : null,
+      fromDate: '',
+      toDate: '',
+      accentHue: enableAccentHue ? accentHue.toString() : null,
       category,
     }
     if (uncertainFrom) {
@@ -136,11 +174,14 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
       if (toRelativeStart === '~') newRange.toRelative = '~'
       if (includeTimeTo) newRange.toTime = inputToStorageTime(toTimeStart)
     }
-    const rangeRef = ref(db, `timeline/users/${auth.currentUser.uid}/${currentDataset}/ranges/${my_id}`)
-    set(rangeRef, newRange)
+
+    if (auth.currentUser) {
+      const rangeRef = ref(db, `timeline/users/${auth.currentUser.uid}/${currentDataset}/ranges/${my_id}`)
+      set(rangeRef, newRange)
+    }
 
     // Reset form
-    if (editRange > -1) {
+    if (editRange) {
       restoreCreateRange()
       onCancelEdit()
     } else {
@@ -163,7 +204,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
       setToTimeStart('')
       setToTimeEnd('')
       setNotes('')
-      setCategory(-1)
+      setCategory(null)
       setEnableAccentHue(false)
       setAccentHue(-1)
     }
@@ -173,7 +214,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
   useEffect(() => {
     if (prevEditRange.current !== editRange) {
       setValidationError('')
-      if (editRange > -1) {
+      if (editRange) {
         if (Object.keys(createRangeStorage.current).length === 0)
           createRangeStorage.current = {
             title,
@@ -199,35 +240,43 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
             enableAccentHue,
             accentHue,
           }
-        const range = data[currentDataset].ranges[editRange]
-        const thisUncertainFrom = Array.isArray(range.fromDate)
-        const thisTBD = range.toDate === 'TBD'
-        const thisUncertainTo = Array.isArray(range.toDate)
+        const range = data[currentDataset].ranges?.[editRange]
+        if (range) {
+          const thisUncertainFrom = Array.isArray(range.fromDate)
+          const thisTBD = range.toDate === 'TBD'
+          const thisUncertainTo = Array.isArray(range.toDate)
 
-        setTitle(range.title)
-        setUncertainFrom(thisUncertainFrom)
-        setIncludeTimeFrom(!!range.fromTime)
-        setFromRelativeStart(thisUncertainFrom ? range.fromRelative[0] ?? '≥' : range.fromRelative ?? '=')
-        setFromRelativeEnd(thisUncertainFrom ? range.fromRelative[1] ?? '≤' : '=')
-        setFromDateStart(storageToInputDate(thisUncertainFrom ? range.fromDate[0] : range.fromDate))
-        setFromDateEnd(thisUncertainFrom ? storageToInputDate(range.fromDate[1]) : '')
-        setFromTimeStart(
-          !!range.fromTime ? storageToInputTime(thisUncertainFrom ? range.fromTime[0] : range.fromTime) : ''
-        )
-        setFromTimeEnd(thisUncertainFrom && !!range.fromTime ? storageToInputTime(range.fromTime[1]) : '')
-        setTBD(thisTBD)
-        setUncertainTo(thisUncertainTo)
-        setIncludeTimeTo(!!range.toTime)
-        setToRelativeStart(thisUncertainTo ? range.toRelative[0] ?? '≥' : range.toRelative ?? '=')
-        setToRelativeEnd(thisUncertainTo ? range.toRelative[1] ?? '≤' : '=')
-        setToDateStart(storageToInputDate(thisUncertainTo ? range.toDate[0] : range.toDate))
-        setToDateEnd(thisUncertainTo ? storageToInputDate(range.toDate[1]) : '')
-        setToTimeStart(!!range.toTime ? storageToInputTime(thisUncertainTo ? range.toTime[0] : range.toTime) : '')
-        setToTimeEnd(thisUncertainTo && !!range.toTime ? storageToInputTime(range.toTime[1]) : '')
-        setNotes(range.notes)
-        setCategory(range.category ?? -1)
-        setEnableAccentHue(!!range.accentHue || range.accentHue > -1)
-        setAccentHue(range.accentHue ?? 0)
+          setTitle(range.title)
+          setUncertainFrom(thisUncertainFrom)
+          setIncludeTimeFrom(!!range.fromTime)
+          setFromRelativeStart(
+            thisUncertainFrom
+              ? (range.fromRelative as [string, string])[0] ?? '≥'
+              : (range.fromRelative as string) ?? '='
+          )
+          setFromRelativeEnd(thisUncertainFrom ? (range.fromRelative as [string, string])[1] ?? '≤' : '=')
+          setFromDateStart(storageToInputDate(thisUncertainFrom ? range.fromDate[0] : range.fromDate))
+          setFromDateEnd(thisUncertainFrom ? storageToInputDate(range.fromDate[1]) : '')
+          setFromTimeStart(
+            !!range.fromTime ? storageToInputTime(thisUncertainFrom ? range.fromTime[0] : range.fromTime) : ''
+          )
+          setFromTimeEnd(thisUncertainFrom && !!range.fromTime ? storageToInputTime(range.fromTime[1]) : '')
+          setTBD(thisTBD)
+          setUncertainTo(thisUncertainTo)
+          setIncludeTimeTo(!!range.toTime)
+          setToRelativeStart(
+            thisUncertainTo ? (range.toRelative as [string, string])[0] ?? '≥' : (range.toRelative as string) ?? '='
+          )
+          setToRelativeEnd(thisUncertainTo ? (range.toRelative as [string, string])[1] ?? '≤' : '=')
+          setToDateStart(storageToInputDate(thisUncertainTo ? range.toDate[0] : range.toDate))
+          setToDateEnd(thisUncertainTo ? storageToInputDate(range.toDate[1]) : '')
+          setToTimeStart(!!range.toTime ? storageToInputTime(thisUncertainTo ? range.toTime[0] : range.toTime) : '')
+          setToTimeEnd(thisUncertainTo && !!range.toTime ? storageToInputTime(range.toTime[1]) : '')
+          setNotes(range.notes)
+          setCategory(range.category ?? null)
+          setEnableAccentHue(!!range.accentHue || Number(range.accentHue) > -1)
+          setAccentHue(Number(range.accentHue) ?? 0)
+        }
       } else {
         restoreCreateRange()
         createRangeStorage.current = {}
@@ -266,12 +315,12 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
     <>
       <form className='sidebar rangeSidebar' onSubmit={formSubmit} onInput={() => setValidationError('')}>
         <div className='sidebarTitle'>
-          {editRange > -1 && (
+          {editRange && (
             <span className='material-symbols-outlined' onClick={onCancelEdit}>
               close
             </span>
           )}
-          <h1>{editRange === -1 ? 'Create' : 'Edit'} Range</h1>
+          <h1>{editRange ? 'Edit' : 'Create'} Range</h1>
         </div>
         <h2>Title</h2>
         <input type='text' name='title' value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -298,7 +347,10 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
         </div>
         <div className='sidebarRow'>
           {!uncertainFrom ? (
-            <select name='fromRelative' value={fromRelativeStart} onInput={(e) => setFromRelativeStart(e.target.value)}>
+            <select
+              name='fromRelative'
+              value={fromRelativeStart}
+              onInput={(e: React.ChangeEvent<HTMLSelectElement>) => setFromRelativeStart(e.target.value)}>
               <option>=</option>
               <option>~</option>
             </select>
@@ -306,7 +358,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
             <select
               name='fromRelativeStart'
               value={fromRelativeStart}
-              onInput={(e) => setFromRelativeStart(e.target.value)}>
+              onInput={(e: React.ChangeEvent<HTMLSelectElement>) => setFromRelativeStart(e.target.value)}>
               <option>≥</option>
               <option>{'>'}</option>
             </select>
@@ -315,7 +367,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
             type='date'
             name={uncertainFrom ? 'fromDateStart' : 'fromDate'}
             value={fromDateStart}
-            onInput={(e) => setFromDateStart(e.target.value)}
+            onInput={(e: React.ChangeEvent<HTMLInputElement>) => setFromDateStart(e.target.value)}
             max={uncertainFrom ? fromDateEnd : '9999-12-31'}
           />
           {includeTimeFrom && (
@@ -323,7 +375,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
               type='time'
               name={uncertainFrom ? 'fromTimeStart' : 'fromTime'}
               value={fromTimeStart}
-              onInput={(e) => setFromTimeStart(e.target.value)}
+              onInput={(e: React.ChangeEvent<HTMLInputElement>) => setFromTimeStart(e.target.value)}
               step='1'
               max={uncertainFrom && fromDateStart === fromDateEnd ? fromTimeEnd : ''}
             />
@@ -331,7 +383,10 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
         </div>
         {uncertainFrom && (
           <div className='sidebarRow'>
-            <select name='fromRelativeEnd' value={fromRelativeEnd} onInput={(e) => setFromRelativeEnd(e.target.value)}>
+            <select
+              name='fromRelativeEnd'
+              value={fromRelativeEnd}
+              onInput={(e: React.ChangeEvent<HTMLSelectElement>) => setFromRelativeEnd(e.target.value)}>
               <option>≤</option>
               <option>{'<'}</option>
             </select>
@@ -339,7 +394,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
               type='date'
               name='fromDateEnd'
               value={fromDateEnd}
-              onInput={(e) => setFromDateEnd(e.target.value)}
+              onInput={(e: React.ChangeEvent<HTMLInputElement>) => setFromDateEnd(e.target.value)}
               min={fromDateStart}
               max='9999-12-31'
             />
@@ -349,7 +404,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
                 step='1'
                 name='fromTimeEnd'
                 value={fromTimeEnd}
-                onInput={(e) => setFromTimeEnd(e.target.value)}
+                onInput={(e: React.ChangeEvent<HTMLInputElement>) => setFromTimeEnd(e.target.value)}
                 min={fromDateStart === fromDateEnd ? fromTimeStart : ''}
               />
             )}
@@ -388,7 +443,10 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
           <>
             <div className='sidebarRow'>
               {!uncertainTo ? (
-                <select name='toRelative' value={toRelativeStart} onInput={(e) => setToRelativeStart(e.target.value)}>
+                <select
+                  name='toRelative'
+                  value={toRelativeStart}
+                  onInput={(e: React.ChangeEvent<HTMLSelectElement>) => setToRelativeStart(e.target.value)}>
                   <option>=</option>
                   <option>~</option>
                 </select>
@@ -396,7 +454,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
                 <select
                   name='toRelativeStart'
                   value={toRelativeStart}
-                  onInput={(e) => setToRelativeStart(e.target.value)}>
+                  onInput={(e: React.ChangeEvent<HTMLSelectElement>) => setToRelativeStart(e.target.value)}>
                   <option>≥</option>
                   <option>{'>'}</option>
                 </select>
@@ -405,7 +463,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
                 type='date'
                 name={uncertainTo ? 'toDateStart' : 'toDate'}
                 value={toDateStart}
-                onInput={(e) => setToDateStart(e.target.value)}
+                onInput={(e: React.ChangeEvent<HTMLInputElement>) => setToDateStart(e.target.value)}
                 max={uncertainTo ? toDateEnd : '9999-12-31'}
               />
               {includeTimeTo && (
@@ -413,7 +471,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
                   type='time'
                   name={uncertainTo ? 'toTimeStart' : 'toTime'}
                   value={toTimeStart}
-                  onInput={(e) => setToTimeStart(e.target.value)}
+                  onInput={(e: React.ChangeEvent<HTMLInputElement>) => setToTimeStart(e.target.value)}
                   step='1'
                   max={uncertainTo && toDateStart === toDateEnd ? toTimeEnd : ''}
                 />
@@ -421,7 +479,10 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
             </div>
             {uncertainTo && (
               <div className='sidebarRow'>
-                <select name='toRelativeEnd' value={toRelativeEnd} onInput={(e) => setToRelativeEnd(e.target.value)}>
+                <select
+                  name='toRelativeEnd'
+                  value={toRelativeEnd}
+                  onInput={(e: React.ChangeEvent<HTMLSelectElement>) => setToRelativeEnd(e.target.value)}>
                   <option>≤</option>
                   <option>{'<'}</option>
                 </select>
@@ -429,7 +490,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
                   type='date'
                   name='toDateEnd'
                   value={toDateEnd}
-                  onInput={(e) => setToDateEnd(e.target.value)}
+                  onInput={(e: React.ChangeEvent<HTMLInputElement>) => setToDateEnd(e.target.value)}
                   min={toDateStart}
                   max='9999-12-31'
                 />
@@ -438,7 +499,7 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
                     type='time'
                     name='toTimeEnd'
                     value={toTimeEnd}
-                    onInput={(e) => setToTimeEnd(e.target.value)}
+                    onInput={(e: React.ChangeEvent<HTMLInputElement>) => setToTimeEnd(e.target.value)}
                     step='1'
                     min={toDateStart === toDateEnd ? toTimeStart : ''}
                   />
@@ -449,7 +510,11 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
         )}
         <h2>Notes</h2>
         <div className='textareaWrapper'>
-          <textarea name='notes' value={notes} onInput={(e) => setNotes(e.target.value)} />
+          <textarea
+            name='notes'
+            value={notes}
+            onInput={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
+          />
         </div>
         <h2>Category</h2>
         <div className='sidebarRow'>
@@ -458,10 +523,10 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
             style={{ maxWidth: 'calc(100% - 60px)' }}
             onClick={() => setShowCategoryPicker(!showCategoryPicker)}
             ref={categorySelectRef}>
-            <h1>{data.datasets[currentDataset].categories?.[category]?.name ?? '--none--'}</h1>
+            <h1>{data.datasets[currentDataset].categories?.[category ?? '']?.name ?? '--none--'}</h1>
             <span className='material-symbols-outlined'>expand_more</span>
           </div>
-          {category > -1 && (
+          {category && (
             <span
               className='material-symbols-outlined sidebarIconButton'
               onClick={() => setShowCategoryOptions(category)}>
@@ -487,10 +552,11 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
           setAccentHue={setAccentHue}
         />
         <input type='submit' />
-        {editRange > -1 && (
+        {editRange && (
           <input
             type='button'
             value='Delete'
+            // @ts-expect-error
             style={{ marginTop: 0, '--accent-hue': '0deg' }}
             onClick={() => {
               setVerifyDeleteRange(true)
@@ -509,48 +575,52 @@ function CreateRangeSidebar({ data, currentDataset, editRange, onCancelEdit }) {
         }}
         onExit={() => setShowCategoryPicker(false)}
         selectDropdownRef={categorySelectRef}
-        items={[-1].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).map((category_id) => ({
+        items={['-1'].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).map((category_id) => ({
           id: category_id,
-          name: category_id === -1 ? '--none--' : data.datasets[currentDataset].categories[category_id].name,
+          name: category_id === '-1' ? '--none--' : data.datasets[currentDataset].categories[category_id].name,
         }))}
         itemType='category'
-        selected={category}
-        onSelect={(category_id) => setCategory(category_id)}
+        selected={category ?? '-1'}
+        onSelect={(categoryId) => setCategory(categoryId === '-1' ? null : categoryId)}
         onCreate={(name) => createCategory(data, currentDataset, name)}
         itemOptions={[{ iconName: 'delete', onClick: (category_id) => setVerifyDeleteCategory(category_id) }]}
       />
-      <Modal show={verifyDeleteCategory > -1} onExit={() => setVerifyDeleteCategory(-1)}>
+      <Modal show={verifyDeleteCategory} onExit={() => setVerifyDeleteCategory(null)}>
         <ConfirmDelete
-          itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory]?.name}
+          itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory ?? '']?.name}
           itemType='the category'
           onConfirm={() => {
-            remove(
-              ref(
-                db,
-                'timeline/users/' +
-                  auth.currentUser.uid +
-                  '/datasets/' +
-                  currentDataset +
-                  '/categories/' +
-                  verifyDeleteCategory
+            if (auth.currentUser) {
+              remove(
+                ref(
+                  db,
+                  'timeline/users/' +
+                    auth.currentUser.uid +
+                    '/datasets/' +
+                    currentDataset +
+                    '/categories/' +
+                    verifyDeleteCategory
+                )
               )
-            )
-            setVerifyDeleteCategory(-1)
+              setVerifyDeleteCategory(null)
+            }
           }}
         />
       </Modal>
       <Modal show={verifyDeleteRange} onExit={() => setVerifyDeleteRange(false)}>
         <ConfirmDelete
-          itemName={data[currentDataset]?.ranges?.[editRange]?.title}
+          itemName={data[currentDataset]?.ranges?.[editRange ?? '']?.title}
           itemType='the range'
           onConfirm={() => {
-            remove(ref(db, 'timeline/users/' + auth.currentUser.uid + '/' + currentDataset + '/ranges/' + editRange))
-            onCancelEdit()
-            setVerifyDeleteRange(false)
+            if (auth.currentUser) {
+              remove(ref(db, 'timeline/users/' + auth.currentUser.uid + '/' + currentDataset + '/ranges/' + editRange))
+              onCancelEdit()
+              setVerifyDeleteRange(false)
+            }
           }}
         />
       </Modal>
-      <Modal show={showCategoryOptions > -1} onExit={() => setShowCategoryOptions(-1)}>
+      <Modal show={showCategoryOptions} onExit={() => setShowCategoryOptions(null)}>
         <CategoryOptions data={data} dataset={currentDataset} categoryID={showCategoryOptions} />
       </Modal>
     </>

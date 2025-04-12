@@ -1,8 +1,18 @@
+import { Dispatch, SetStateAction } from 'react'
+import { parseEventsToMonths, parseMonth } from '../functions'
+import { UserData } from '../types'
 import './EventView.css'
-import { parseMonth, parseEventsToMonths } from '../functions'
 
-function EventView({ events, editEvent, setEditEvent }) {
-  if (Object.keys(events).length === 0)
+function EventView({
+  events,
+  editEvent,
+  setEditEvent,
+}: {
+  events: UserData[string]['events']
+  editEvent: string | null
+  setEditEvent: Dispatch<SetStateAction<string | null>>
+}) {
+  if (Object.keys(events ?? {}).length === 0)
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <h2 style={{ color: '#fff8' }}>No events</h2>

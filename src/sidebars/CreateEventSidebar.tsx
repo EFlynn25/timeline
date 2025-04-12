@@ -18,11 +18,34 @@ import CategoryOptions from '../GlobalComponents/CategoryOptions'
 import ConfirmDelete from '../GlobalComponents/ConfirmDelete'
 import Modal from '../GlobalComponents/Modal'
 import SelectAccentHue from '../GlobalComponents/SelectAccentHue'
+import { Event, UserData } from '../types'
 
-function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
+type CreateEventStorage = {
+  title: string
+  relative: string
+  date: string
+  includeTime: boolean
+  time: string
+  notes: string
+  category: string | null
+  enableAccentHue: boolean
+  accentHue: number
+}
+
+function CreateEventSidebar({
+  data,
+  currentDataset,
+  editEvent,
+  onCancelEdit,
+}: {
+  data: UserData
+  currentDataset: string
+  editEvent: string | null
+  onCancelEdit: () => void
+}) {
   const prevEditEvent = useRef(editEvent)
   const [validationError, setValidationError] = useState('')
-  const createEventStorage = useRef({})
+  const createEventStorage = useRef<Partial<CreateEventStorage>>({})
   const [verifyDeleteEvent, setVerifyDeleteEvent] = useState(false)
 
   // Input States
@@ -34,11 +57,11 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
   const [notes, setNotes] = useState('')
 
   // Category States
-  const [category, setCategory] = useState(-1)
-  const categorySelectRef = useRef()
+  const [category, setCategory] = useState<string | null>(null)
+  const categorySelectRef = useRef<HTMLDivElement>(null)
   const [showCategoryPicker, setShowCategoryPicker] = useState(false)
-  const [verifyDeleteCategory, setVerifyDeleteCategory] = useState(-1)
-  const [showCategoryOptions, setShowCategoryOptions] = useState(-1)
+  const [verifyDeleteCategory, setVerifyDeleteCategory] = useState<string | null>(null)
+  const [showCategoryOptions, setShowCategoryOptions] = useState<string | null>(null)
 
   // Accent Hue States
   const [enableAccentHue, setEnableAccentHue] = useState(false)
@@ -46,15 +69,15 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
 
   // Functions
   const restoreCreateEvent = () => {
-    setTitle(createEventStorage.current.title)
-    setRelative(createEventStorage.current.relative)
-    setDate(createEventStorage.current.date)
-    setIncludeTime(createEventStorage.current.includeTime)
-    setTime(createEventStorage.current.time)
-    setNotes(createEventStorage.current.notes)
-    setCategory(createEventStorage.current.category)
-    setEnableAccentHue(createEventStorage.current.enableAccentHue)
-    setAccentHue(createEventStorage.current.accentHue)
+    setTitle(createEventStorage.current.title ?? '')
+    setRelative(createEventStorage.current.relative ?? '=')
+    setDate(createEventStorage.current.date ?? '')
+    setIncludeTime(createEventStorage.current.includeTime ?? false)
+    setTime(createEventStorage.current.time ?? '')
+    setNotes(createEventStorage.current.notes ?? '')
+    setCategory(createEventStorage.current.category ?? null)
+    setEnableAccentHue(createEventStorage.current.enableAccentHue ?? false)
+    setAccentHue(createEventStorage.current.accentHue ?? 0)
   }
 
   const formSubmit = (e) => {
@@ -71,21 +94,25 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
     }
 
     // Add event to dataset
-    const my_id = editEvent > -1 ? editEvent : createNewID(8, Object.keys(data[currentDataset]?.events ?? {}))
-    let newEvent = {
+    const my_id = editEvent ?? createNewID(8, Object.keys(data[currentDataset]?.events ?? {}))
+    let newEvent: Event = {
       title,
       notes,
-      accentHue: enableAccentHue ? accentHue : null,
+      date: '',
+      accentHue: enableAccentHue ? accentHue.toString() : null,
       category,
     }
     newEvent.date = inputToStorageDate(date)
     if (relative !== '=') newEvent.relative = relative
     if (includeTime) newEvent.time = inputToStorageTime(time)
-    const eventRef = ref(db, `timeline/users/${auth.currentUser.uid}/${currentDataset}/events/${my_id}`)
-    set(eventRef, newEvent)
+
+    if (auth.currentUser) {
+      const eventRef = ref(db, `timeline/users/${auth.currentUser.uid}/${currentDataset}/events/${my_id}`)
+      set(eventRef, newEvent)
+    }
 
     // Reset form
-    if (editEvent > -1) {
+    if (editEvent) {
       restoreCreateEvent()
       onCancelEdit()
     } else {
@@ -95,7 +122,7 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
       setIncludeTime(false)
       setTime('')
       setNotes('')
-      setCategory(-1)
+      setCategory(null)
       setEnableAccentHue(false)
       setAccentHue(0)
     }
@@ -105,7 +132,7 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
   useEffect(() => {
     if (prevEditEvent.current !== editEvent) {
       setValidationError('')
-      if (editEvent > -1) {
+      if (editEvent) {
         if (Object.keys(createEventStorage.current).length === 0)
           createEventStorage.current = {
             title,
@@ -118,17 +145,18 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
             enableAccentHue,
             accentHue,
           }
-        const event = data[currentDataset].events[editEvent]
-
-        setTitle(event.title)
-        setRelative(event.relative ?? '=')
-        setDate(storageToInputDate(event.date))
-        setIncludeTime(!!event.time)
-        setTime(!!event.time ? storageToInputTime(event.time) : '')
-        setNotes(event.notes)
-        setCategory(event.category ?? -1)
-        setEnableAccentHue(!!event.accentHue || event.accentHue > -1)
-        setAccentHue(event.accentHue ?? 0)
+        const event = data[currentDataset].events?.[editEvent]
+        if (event) {
+          setTitle(event.title)
+          setRelative(event.relative ?? '=')
+          setDate(storageToInputDate(event.date))
+          setIncludeTime(!!event.time)
+          setTime(!!event.time ? storageToInputTime(event.time) : '')
+          setNotes(event.notes)
+          setCategory(event.category ?? null)
+          setEnableAccentHue(!!event.accentHue || Number(event.accentHue) > -1)
+          setAccentHue(Number(event.accentHue) ?? 0)
+        }
       } else {
         restoreCreateEvent()
         createEventStorage.current = {}
@@ -154,12 +182,12 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
     <>
       <form className='sidebar eventSidebar' onSubmit={formSubmit} onInput={() => setValidationError('')}>
         <div className='sidebarTitle'>
-          {editEvent > -1 && (
+          {editEvent && (
             <span className='material-symbols-outlined' onClick={onCancelEdit}>
               close
             </span>
           )}
-          <h1>{editEvent === -1 ? 'Create' : 'Edit'} Event</h1>
+          <h1>{editEvent ? 'Edit' : 'Create'} Event</h1>
         </div>
         <h2>Title</h2>
         <input type='text' name='title' value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -179,14 +207,30 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
             <option>{'<'}</option>
             <option>{'>'}</option>
           </select>
-          <input type='date' name='date' value={date} onInput={(e) => setDate(e.target.value)} max='9999-12-31' />
+          <input
+            type='date'
+            name='date'
+            value={date}
+            onInput={(e: React.ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
+            max='9999-12-31'
+          />
           {includeTime && (
-            <input type='time' name='time' step='1' value={time} onInput={(e) => setTime(e.target.value)} />
+            <input
+              type='time'
+              name='time'
+              step='1'
+              value={time}
+              onInput={(e: React.ChangeEvent<HTMLInputElement>) => setTime(e.target.value)}
+            />
           )}
         </div>
         <h2>Notes</h2>
         <div className='textareaWrapper'>
-          <textarea name='notes' value={notes} onInput={(e) => setNotes(e.target.value)} />
+          <textarea
+            name='notes'
+            value={notes}
+            onInput={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
+          />
         </div>
         <h2>Category</h2>
         <div className='sidebarRow'>
@@ -195,10 +239,10 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
             style={{ maxWidth: 'calc(100% - 60px)' }}
             onClick={() => setShowCategoryPicker(!showCategoryPicker)}
             ref={categorySelectRef}>
-            <h1>{data.datasets[currentDataset].categories?.[category]?.name ?? '--none--'}</h1>
+            <h1>{data.datasets[currentDataset].categories?.[category ?? '']?.name ?? '--none--'}</h1>
             <span className='material-symbols-outlined'>expand_more</span>
           </div>
-          {category > -1 && (
+          {category && (
             <span
               className='material-symbols-outlined sidebarIconButton'
               onClick={() => setShowCategoryOptions(category)}>
@@ -224,10 +268,11 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
           setAccentHue={setAccentHue}
         />
         <input type='submit' />
-        {editEvent > -1 && (
+        {editEvent && (
           <input
             type='button'
             value='Delete'
+            // @ts-expect-error
             style={{ marginTop: 0, '--accent-hue': '0deg' }}
             onClick={() => {
               setVerifyDeleteEvent(true)
@@ -246,48 +291,52 @@ function CreateEventSidebar({ data, currentDataset, editEvent, onCancelEdit }) {
         }}
         onExit={() => setShowCategoryPicker(false)}
         selectDropdownRef={categorySelectRef}
-        items={[-1].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).map((category_id) => ({
-          id: category_id,
-          name: category_id === -1 ? '--none--' : data.datasets[currentDataset].categories[category_id].name,
+        items={['-1'].concat(Object.keys(data.datasets[currentDataset].categories ?? {})).map((categoryId) => ({
+          id: categoryId,
+          name: categoryId === '-1' ? '--none--' : data.datasets[currentDataset].categories[categoryId].name,
         }))}
         itemType='category'
-        selected={category}
-        onSelect={(category_id) => setCategory(category_id)}
+        selected={category ?? '-1'}
+        onSelect={(categoryId) => setCategory(categoryId === '-1' ? null : categoryId)}
         onCreate={(name) => createCategory(data, currentDataset, name)}
         itemOptions={[{ iconName: 'delete', onClick: (category_id) => setVerifyDeleteCategory(category_id) }]}
       />
-      <Modal show={verifyDeleteCategory > -1} onExit={() => setVerifyDeleteCategory(-1)}>
+      <Modal show={verifyDeleteCategory} onExit={() => setVerifyDeleteCategory(null)}>
         <ConfirmDelete
-          itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory]?.name}
+          itemName={data.datasets[currentDataset].categories?.[verifyDeleteCategory ?? '']?.name}
           itemType='the category'
           onConfirm={() => {
-            remove(
-              ref(
-                db,
-                'timeline/users/' +
-                  auth.currentUser.uid +
-                  '/datasets/' +
-                  currentDataset +
-                  '/categories/' +
-                  verifyDeleteCategory
+            if (auth.currentUser) {
+              remove(
+                ref(
+                  db,
+                  'timeline/users/' +
+                    auth.currentUser.uid +
+                    '/datasets/' +
+                    currentDataset +
+                    '/categories/' +
+                    verifyDeleteCategory
+                )
               )
-            )
-            setVerifyDeleteCategory(-1)
+              setVerifyDeleteCategory(null)
+            }
           }}
         />
       </Modal>
       <Modal show={verifyDeleteEvent} onExit={() => setVerifyDeleteEvent(false)}>
         <ConfirmDelete
-          itemName={data[currentDataset]?.events[editEvent]?.title}
+          itemName={data[currentDataset]?.events?.[editEvent ?? '']?.title}
           itemType='the event'
           onConfirm={() => {
-            remove(ref(db, 'timeline/users/' + auth.currentUser.uid + '/' + currentDataset + '/events/' + editEvent))
-            onCancelEdit()
-            setVerifyDeleteEvent(false)
+            if (auth.currentUser) {
+              remove(ref(db, 'timeline/users/' + auth.currentUser.uid + '/' + currentDataset + '/events/' + editEvent))
+              onCancelEdit()
+              setVerifyDeleteEvent(false)
+            }
           }}
         />
       </Modal>
-      <Modal show={showCategoryOptions > -1} onExit={() => setShowCategoryOptions(-1)}>
+      <Modal show={showCategoryOptions} onExit={() => setShowCategoryOptions(null)}>
         <CategoryOptions data={data} dataset={currentDataset} categoryID={showCategoryOptions} />
       </Modal>
     </>
